@@ -1,0 +1,15 @@
+WORK IN PROGRESS:
+
+
+ISSUE TRACKING:
+  - Fix table spacing between filled text and input boxes text. Bigger left margin for input box
+  - Add error handling for labels/rosters if class does not contain students
+  - Improve spacing on labels - add small margin above text so printing doesn't occur right on the edge
+ 
+
+FEATURES TO ADD:
+  - Show error if user does not have permission to run sync
+
+
+BUG FIXES/FEATURES ADDED:
+  - PDFMake updated to v0.2.12
