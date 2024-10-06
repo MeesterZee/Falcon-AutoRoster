@@ -1,0 +1,1251 @@
+<!-- FALCON UI LIBRARY v2.0 -->
+<!--
+  Usage: 
+    Toast:
+      HTML Usage: <div id="toast-container"></div> 
+      Function Usage: 'showToast(title [optional], message, timeToShow)' 
+      Full HTML markup allowed for title/message
+
+    Modal Dialog:
+      HTML Usage: <div id="modal-container"></div>
+      Function Usage: 'showModal(title, message, buttonText1[optional], buttonText2[optional])'
+      Full HTML markup allowed for title/message
+
+    HTML Modal: 
+      HTML Usage:
+        <div class="modal-html">
+          <div class="modal-htmlcontent">
+            <div class="modal-htmlheader">
+              ...
+            </div>
+            <div class="modal-htmlbody">
+              ...
+            </div>
+          </div>
+        </div>
+      Function Usage: 'showHTMLModal(modalId)', 'closeHTMLModal(modalId)'
+      Full HTML markup allowed for modal body
+          
+    Loading Indicator:
+      HTML: <div id="loading-indicator"></div>
+      Show/hide div as needed to toggle indicator
+-->
+
+<!-- CSS -->
+<style>
+  /* Hide scrollbars */
+  html {
+    /* IE and Edge */
+    -ms-overflow-style: none;
+    /* Firefox */
+    scrollbar-width: none;
+  }
+  ::-webkit-scrollbar {
+    /* Chrome, Opera, Safari */
+    display: none;
+  }
+
+  /* Hide default values in date/time inputs */
+  input[type='date']:not(:focus):in-range::-webkit-datetime-edit-year-field,
+  input[type='date']:not(:focus):in-range::-webkit-datetime-edit-month-field,
+  input[type='date']:not(:focus):in-range::-webkit-datetime-edit-day-field,
+  input[type='date']:not(:focus):in-range::-webkit-datetime-edit-text {
+    color: transparent;
+  }
+  input[type='time']:not(:focus):in-range::-webkit-datetime-edit-hour-field,
+  input[type='time']:not(:focus):in-range::-webkit-datetime-edit-minute-field,
+  input[type='time']:not(:focus):in-range::-webkit-datetime-edit-ampm-field,
+  input[type='time']:not(:focus):in-range::-webkit-datetime-edit-text {
+    color: transparent;
+  }
+  
+  /* Bootstrap icon fix */
+  .bi {
+    vertical-align: .0125em;
+    width: 1em;
+    height: 1em;
+    margin-right: 5px;
+  }
+
+  .bi-close {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1; /* Prevent line-height issues */
+    vertical-align: middle; /* Ensure vertical alignment */
+  }
+
+  .bi-attachment {
+    vertical-align: .0125em;
+    width: 1em;
+    height: 1em;
+    margin-right: 5px;
+    color: var(--text-accent-color);
+  }
+
+  /***************/
+  /* TOAST CLASS */
+  /***************/
+  
+  #toast-container {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    max-width: 25%;
+    z-index: 15;
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+
+  .toast {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    background-color: var(--page-accent-color);
+    padding: 10px;
+    border-radius: 10px;
+    opacity: 0;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+    display: inline-block;
+    margin-top: 5px;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: auto;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  .toast.hide {
+    opacity: 0;
+  }
+
+  .toast-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  /***************/
+  /* MODAL CLASS */
+  /***************/
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+    z-index: 50;
+  }
+
+  .modal-content {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    background-color: var(--page-accent-color);
+    padding: 10px;
+    border-radius: 10px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    width: 350px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .modal-message {
+    margin-bottom: 20px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    margin-top: 20px;
+  }
+
+  .modal-buttons button {
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 10px; /* Add spacing between buttons */
+    padding: 5px 20px;
+    border: none;
+    border-radius: 20px;
+    background-color: var(--accent-color);
+    color: var(--text-primary-color);
+    cursor: pointer;
+    transition: 0.5s;
+  }
+
+  .modal-buttons button:first-child {
+    margin-left: 0; /* Remove margin from first button */
+  }
+
+  /**************/
+  /* HTML MODAL */
+  /**************/
+
+  .modal-html {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+    z-index: 40;
+  }
+
+  .modal-htmlcontent {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    /* Background hack to prevent bleed in corners from parent div */
+    background: linear-gradient(transparent 0%, transparent 2%, var(--page-accent-color) 2%);
+    border-radius: 10px;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    width: 450px;
+    max-height: 85vh;
+    overflow: hidden;
+  }
+
+  .modal-htmlheader {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+  }
+
+  .modal-htmlclose {
+    font-size: 20px;
+    color: var(--text-primary-color);
+    background: none;
+    padding: 0;
+    margin: 7px 10px 0 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-sizing: border-box;
+    z-index: 10;
+  }
+
+  .modal-htmlbody {
+    overflow-y: auto;
+    max-height: calc(85vh - 34px); /* Adjust based on the header's height */
+  }
+
+  .modal-htmlbutton {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+  }
+
+  .modal-htmlbutton button {
+    font-size: 16px;
+    font-weight: bold;
+    width: 70%;
+    padding: 5px 20px;
+    border: none;
+    border-radius: 20px;
+    background-color: var(--accent-color);
+    color: var(--text-primary-color);
+    cursor: pointer;
+    transition: 0.5s;
+  }
+
+  .modal-buttons button:hover, .modal-htmlbutton button:hover {
+    background-color: var(--primary-color);
+  }
+
+  .modal-htmlclose {
+    font-size: 20px;
+    color: var(--text-primary-color);
+    background: none;
+    padding: 0;
+    margin: 7px 10px 0 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-sizing: border-box;
+    z-index: 10;
+  }
+
+  /*************/
+  /* ANIMATION */
+  /*************/
+
+  .modal.show {
+    display: block;
+    animation: fade-in 0.2s forwards;
+  }
+
+  .modal.hide {
+    display: block;
+    animation: fade-out 0.2s forwards;
+  }
+
+  .modal-html.show {
+    display: block;
+    animation: fade-in 0.2s forwards;
+  }
+
+  .modal-html.hide {
+    animation: fade-out 0.2s forwards;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  /***************/
+  /* RADIO CLASS */
+  /***************/
+
+  label.radio-label {
+    display: block;
+    position: relative;
+    font-size: 16px;
+    color: var(--text-primary-color);
+    padding-left: 29px;
+    margin: 0 10px 10px 10px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Hide the browser's default radio button */
+  .radio-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Create a custom radio button */
+  .radio-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 14px;
+    width: 14px;
+    background-color: var(--element-background-color);
+    border-radius: 50%;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  /* When the radio button is checked, add a blue background */
+  .radio-label input:checked~.radio-select {
+    background-color: var(--primary-color);
+  }
+
+  /* Create the indicator (the dot/circle - hidden when not checked) */
+  .radio-select:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+
+  /* Show the indicator (dot/circle) when checked */
+  .radio-label input:checked~.radio-select:after {
+    display: block;
+  }
+
+  /* Style the indicator (dot/circle) */
+  .radio-label .radio-select:after {
+    top: 4px;
+    left: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--element-background-color);
+  }
+
+  /***********************/
+  /* TOGGLE SWITCH CLASS */
+  /***********************/
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+    margin: 10px 5px 0 15px;
+  }
+
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--element-accent-color);
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 34px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+    z-index: 1; /* Ensure the handle is above the background */
+  }
+
+  input:checked + .slider {
+    background-color: var(--primary-color);
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(14px);
+    -ms-transform: translateX(14px);
+    transform: translateX(14px);
+    z-index: 1; /* Ensure the handle is above the background */
+  }
+
+  /***************************/
+  /* LOADING INDICATOR CLASS */
+  /***************************/
+
+  #loading-indicator {
+    display: block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -25px;
+    margin-left: -25px;
+    border-radius: 50%;
+    border: 6px solid var(--page-accent-color);
+    border-top-color: var(--primary-color);
+    animation: spin 1s infinite linear;
+    z-index: 1;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--page-background-color);
+    margin: 0;
+    padding: 0;
+  }
+
+  #page {
+    display: none;
+  }
+
+  /******************/
+  /* MENU BAR CLASS */
+  /******************/
+
+  .menu-bar {
+    background-color: var(--primary-color);
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    overflow: hidden;
+    cursor: default;
+    padding: 10px 0 10px 0;
+    transition: all 0.5s;
+  }
+
+  .menu-button {
+    display: flex;
+    background-color: inherit;
+    width: 26px;
+    margin: 0 20px 0 20px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+  }
+
+  #menu-icon {
+    width: 24px;
+    margin: 3px auto;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+    -webkit-transition: .5s ease-in-out;
+    -moz-transition: .5s ease-in-out;
+    -o-transition: .5s ease-in-out;
+    transition: .5s ease-in-out;
+    cursor: pointer;
+  }
+
+  #menu-icon span {
+    display: block;
+    position: absolute;
+    height: 4px;
+    width: 100%;
+    background: var(--menu-icon-color);
+    border-radius: 10px;
+    opacity: 1;
+    left: 0;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+    -webkit-transition: .25s ease-in-out;
+    -moz-transition: .25s ease-in-out;
+    -o-transition: .25s ease-in-out;
+    transition: .25s ease-in-out;
+  }
+
+  #menu-icon span:nth-child(1) {
+    top: 0px;
+  }
+
+  #menu-icon span:nth-child(2),
+  #menu-icon span:nth-child(3) {
+    top: 8px;
+  }
+
+  #menu-icon span:nth-child(4) {
+    top: 16px;
+  }
+
+  #menu-icon.open span:nth-child(1) {
+    top: 8px;
+    width: 0%;
+    left: 50%;
+  }
+
+  #menu-icon.open span:nth-child(2) {
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+  #menu-icon.open span:nth-child(3) {
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+  }
+
+  #menu-icon.open span:nth-child(4) {
+    top: 6px;
+    width: 0%;
+    left: 50%;
+  }
+
+  /*****************/
+  /* NAV BAR CLASS */
+  /*****************/
+
+  .nav-link {
+    font-weight: bold;
+    font-size: 18px;
+    float: left;
+    display: block;
+    color: var(--text-primary-color);
+    text-align: center;
+    padding: 10px 15px 10px 15px;
+    text-decoration: none;
+    transition: all 0.5s;
+    margin: 0px 5px 0 5px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .nav-button {
+    font-weight: bold;
+    font-size: 18px;
+    color: var(--text-primary-color);
+    float: left;
+    display: block;
+    background-color: inherit;
+    text-align: center;
+    padding: 10px 15px 10px 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.5s;
+    margin: 0px 5px 0 5px;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .nav-link:hover, .nav-button:hover {
+    background-color: var(--page-accent-color);
+  }
+  
+  .nav-bar {
+    background-color: var(--primary-color);
+    position: relative;
+    height: 0;
+    overflow: hidden;
+    justify-content: flex-start;
+    margin: 0;
+    transition: height 0.5s ease, visibility 0s linear 0.5s;
+  }
+
+  .nav-bar.show {
+    height: 41px;
+  }
+
+  .nav-link.active {
+    background-color: var(--page-accent-color);
+  }
+
+  /******************/
+  /* TOOL BAR CLASS */
+  /******************/
+
+  #toolbar {
+    display: none;
+  }
+
+  .tool-bar {
+    overflow: hidden;
+    background-color: var(--page-accent-color);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+  }
+
+  .tool-bar-button {
+    float: left;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-primary-color);
+    background-color: var(--page-accent-color);
+    border: none;
+    padding: 5px 15px 5px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    margin: 5px;
+    border-radius: 10px;
+  }
+
+  .tool-bar-button:hover {
+    background-color: var(--accent-color);
+  }
+
+  .tool-bar-button-unsaved {
+    background-color: var(--accent-color);
+  }
+
+  .menu-button:focus, .nav-button:focus, .tool-bar-button:focus {
+    outline: none;
+  }
+
+  /*******************/
+  /* DROP DOWN CLASS */
+  /*******************/
+
+  .dropdown {
+    float: left;
+    overflow: hidden;
+  }
+  
+  .dropdown-button {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-primary-color);
+    background-color: var(--page-accent-color);
+    border: none;
+    padding: 5px 15px 5px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    margin: 5px;
+    border-radius: 10px;
+  }
+
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--page-accent-color);
+    box-shadow: 0 5px 10px -5px rgba(0, 0, 0, .25); /* Vertical shift down 5px, spread 11px, shrink -3px */
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    z-index: 2;
+    padding-right: 10px;
+  }
+
+  .dropdown-content button {
+    float: none;
+    display: block;
+    width: 100%;
+    font-size: 18px;
+    color: var(--text-primary-color);
+    background-color: var(--page-accent-color);
+    border: none;
+    padding: 5px 15px 5px 15px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.5s;
+    margin: 5px;
+    border-radius: 10px;
+  }
+
+  .dropdown-content button:hover,
+  .dropdown-button:hover {
+    background-color: var(--accent-color);
+  }
+
+  .dropdown:hover .dropdown-content,
+  .dropdown.active .dropdown-content {
+    display: block;
+  }
+
+  .dropdown:hover .dropdown-button,
+  .dropdown.active .dropdown-button {
+    background-color: var(--accent-color);
+  }
+
+  /**************/
+  /* TEXT CLASS */
+  /**************/
+
+  h1 {
+    font-size: 22px;
+    background-color: transparent;
+    text-align: center;
+    margin: 0;
+    padding: 1px 0 0 0;
+  }
+
+  h2 {
+    font-size: 20px;
+    background-color: var(--primary-color);
+    text-align: center;
+    margin: 0;
+    padding: 5px 0 5px 0;
+    border-radius: 10px 10px 0 0;
+    cursor: default;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    transition: all 0.5s;
+  }
+
+  h3 {
+    font-size: 18px;
+    color: var(--text-accent-color);
+    text-align: center;
+    margin: 15px 10px 5px 10px;
+    border-radius: 10px;
+    cursor: default;
+  }
+
+  p {
+    margin: 0 10px;
+  }
+
+  /***************/
+  /* LABEL CLASS */
+  /***************/
+
+  label {
+    font-size: 16px;
+    color: var(--text-primary-color);
+    margin: 0 0 0 10px;
+  }
+
+  label.block-label {
+    display: block;
+    font-size: 16px;
+    color: var(--text-primary-color);
+    margin: 0 10px 2px 10px;
+  }
+
+  .label-text {
+    display: block;
+    font-size: 16px;
+    color: var(--text-primary-color);
+    margin: 0 10px 2px 10px;
+  }
+
+  input {
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    background-color: var(--element-background-color);
+    color: var(--text-primary-color);
+    text-align: left;
+  }
+
+  input::placeholder {
+    color: var(--text-accent-color);
+  }
+
+  select {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    background-color: var(--element-background-color);
+    color: var(--text-primary-color);
+  }
+
+  /***************/
+  /* TABLE CLASS */
+  /***************/
+
+  .table-wrapper {
+    margin: 0 10px;
+    border-radius: 10px;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 10px;
+    border-spacing: 0;
+    border-radius: 10px;
+    border: 1px solid var(--element-accent-color);
+    background-color: var(--element-background-color);
+    table-layout: fixed;
+  }
+
+  th {
+    font-size: 16px;
+    padding: 5px;
+    box-sizing: border-box;
+    cursor: default;
+    border: 1px solid var(--element-accent-color);
+    text-align: left;
+  }
+  
+  td {
+    font-size: 16px;
+    padding: 5px;
+    border: 1px solid var(--element-accent-color);
+    text-align: left;
+    box-sizing: border-box;
+    cursor: default;
+  }
+
+  .table-content {
+    padding-left: 4px;
+    border-radius: 5px;
+  }
+
+  .td2 {
+    width: 50%;
+    padding: 5px;
+    box-sizing: border-box;
+    cursor: default;
+    border: 1px solid var(--element-accent-color);
+    text-align: left;
+  }
+
+  .table-select {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: none;
+    background-color: var(--element-background-color);
+    color: var(--text-primary-color);
+    padding-left: 0px;
+    height: 20px;
+  }
+    
+  .table-input[type=text], .table-input[type=tel] {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: none;
+    background-color: var(--element-background-color);
+    color: var(--text-primary-color);
+    padding-left: 4px;
+    height: 20px;
+  }
+
+  .table-input[type=date], .table-input[type=time] {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: none;
+    background-color: var(--element-background-color);
+    color: var(--text-primary-color);
+    padding-left: 3px;
+    height: 20px;
+  }
+
+  /* Webkit specific pseudo-class to style the text inside the date/time input box */
+  input::-webkit-date-and-time-value {
+    text-align: left;
+    padding-left: 3px;
+  }
+
+  .table-input[type=color] {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: none;
+    background-color: var(--element-background-color);
+    padding: 0 4px 0 4px;
+    height: 20px;
+  }
+
+  input[type="color"]::-webkit-color-swatch {
+    border: 1px solid var(--element-accent-color)
+  }
+
+  /* Align the time input icon to fix misalignment */
+  .table-input[type="time"]::-webkit-calendar-picker-indicator {
+    margin-right: -1px;
+  }
+  
+  /* Round corners for first and last rows */
+  table tr:first-child th:first-child, 
+  table tr:first-child .td2:first-child {
+    border-top-left-radius: 9px;
+  }
+
+  table tr:first-child th:last-child,
+  table tr:first-child .td2:last-child {
+    border-top-right-radius: 9px;
+  }
+
+  table tr:last-child td:first-child {
+    border-bottom-left-radius: 9px;
+  }
+
+  table tr:last-child td:last-child {
+    border-bottom-right-radius: 9px;
+  }
+
+  /* Add these new styles for the last visible row */
+  .last-visible-row td:first-child {
+      border-bottom-left-radius: 9px;
+  }
+
+  .last-visible-row td:last-child {
+      border-bottom-right-radius: 9px;
+  }
+
+  /****************/
+  /* COLUMN CLASS */
+  /****************/
+  
+  .column-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .column {
+    width: 100%;
+    max-height: calc(100vh - 128px); /* Adjust based on your specific page margins */
+    overflow: hidden;
+    background: linear-gradient(transparent 0%, transparent 2%, var(--page-accent-color) 2%);
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .column-header {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .column-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 20px; /* Adjust padding as needed */
+  }
+
+  .column-input {
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+    margin: 0 10px 0 10px;
+    padding-left: 5px;
+    border: none;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+    height: 34px;
+  }
+
+  .column-select {
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+    margin: 0 10px 10px 10px;
+    padding: 5px 5px 5px 0;
+    border: none;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+    height: 34px;
+  }
+
+  /* Editable content box class */
+  .rich-text-box {
+    background-color: var(--element-background-color);
+    padding: 5px;
+    margin: 0 10px 20px 10px;
+    width: calc(100% - 20px);
+    height: 250px;
+    box-sizing: border-box;
+    overflow: scroll;
+    overflow-wrap: break-word;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  .warning {
+    margin: 15px 10px 0 10px;
+    padding: 5px;
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+    background-color: var(--orange);
+    border: none;
+    border-radius: 10px;
+  }
+
+  .javascript-code {
+    display: none !important;
+  }
+
+  .evaluation-item, .screening-item, .submission-item, .acceptance-item {}
+
+  .item-hide { 
+    display: none;
+  }
+    
+  .search-container {
+    position: relative;
+    margin: 20px 10px 0 10px;
+    width: 100%;    
+  }
+
+  .search-container input[type="text"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    padding-left: 26px; /* Add padding to make space for the icon */
+    box-sizing: border-box;
+    border: none;
+    height: 34px;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  .search-container .search-icon {
+    position: absolute;
+    left: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none; /* Prevents icon from blocking input interactions */
+    color: var(--text-primary-color); /* Icon color */
+  }
+
+  .search-filter-container {
+    margin-bottom: 20px;
+  }
+
+  ///////////////////////////////////////////////
+  // Custom rectangle class for label printing //
+  ///////////////////////////////////////////////
+  
+  .rectangle {
+    height: 96px;
+    width: calc(100% - 140px);
+    color: var(--text-primary-color);
+    background-color: var(--element-background-color);
+    border-radius: 10px;
+    border: 2px solid var(--text-primary-color);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 70px 0 70px;
+  }
+  
+</style>
+
+<!-- JAVASCRIPT FUNCTIONS -->
+<script type="text/javascript">
+
+  function showToast(title = '', message, time = 5000) {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    
+    if (title) {
+      const titleElement = document.createElement('div');
+      titleElement.className = 'toast-title';
+      titleElement.textContent = title;
+      toast.appendChild(titleElement);
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.className = 'toast-message';
+    messageElement.textContent = message;
+    toast.appendChild(messageElement);
+    
+    // Set pointer-events to 'auto' only for the toast, not the container
+    toast.style.pointerEvents = 'auto';
+    
+    toastContainer.appendChild(toast);
+    
+    // Force a reflow to ensure the initial state is applied before adding 'show'
+    void toast.offsetWidth;
+    
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+      toast.classList.remove('show');
+      toast.classList.add('hide');
+
+      toast.addEventListener('transitionend', () => {
+        toast.remove();
+        if (toastContainer.childElementCount === 0) {
+          toastContainer.style.display = 'none';
+        }
+      }, { once: true });
+    }, time);
+
+    // Ensure the container is visible
+    toastContainer.style.display = 'flex';
+  }
+
+  function showModal(title, message, buttonText1 = '', buttonText2 = '') {
+    return new Promise((resolve) => {
+      const modalContainer = document.getElementById('modal-container');
+      const modal = document.createElement('div');
+      modal.className = 'modal'; // Add modal class for animation
+
+      const modalContent = document.createElement('div');
+      modalContent.className = 'modal-content';
+
+      // Create title element if title is provided
+      if (title) {
+        const titleElement = document.createElement('div');
+        titleElement.className = 'modal-title';
+        titleElement.innerHTML = title;
+        modalContent.appendChild(titleElement);
+      }
+
+      // Create message element
+      const messageElement = document.createElement('div');
+      messageElement.className = 'modal-message';
+      messageElement.innerHTML = message;
+      modalContent.appendChild(messageElement);
+
+      // Create buttons
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'modal-buttons';
+      if (buttonText1) {
+        const button1 = document.createElement('button');
+        button1.innerText = buttonText1;
+        button1.onclick = () => closeModal(modal, resolve, buttonText1);
+        buttonContainer.appendChild(button1);
+      }
+      
+      if (buttonText2) {
+        const button2 = document.createElement('button');
+        button2.innerText = buttonText2;
+        button2.onclick = () => closeModal(modal, resolve, buttonText2);
+        buttonContainer.appendChild(button2);
+      }
+
+      modalContent.appendChild(buttonContainer);
+      modal.appendChild(modalContent);
+      modalContainer.appendChild(modal);
+      modal.classList.add('show');
+    });
+  }
+
+  function closeModal(modal, resolve, buttonText) {
+    modal.classList.remove('show');
+    modal.classList.add('hide');
+
+    // Listen for the end of the animation to remove the modal from the DOM
+    modal.addEventListener('animationend', () => {
+      modal.classList.remove('hide');
+      modal.style.display = 'none'; // Ensure the modal is hidden after the animation
+      resolve(buttonText);
+    }, { once: true });
+  }
+
+  function showHtmlModal(modalType) {
+    const htmlModal = document.getElementById(modalType);
+    htmlModal.classList.remove('hide'); // Remove the hide class if it exists
+    htmlModal.classList.add('show');
+    htmlModal.style.display = 'block'; // Ensure the modal is displayed
+
+    const closeButton = htmlModal.querySelector('.modal-htmlclose');
+    closeButton.onclick = () => closeHtmlModal(modalType);
+  }
+
+  function closeHtmlModal(modalType) {
+    const htmlModal = document.getElementById(modalType);
+    htmlModal.classList.remove('show');
+  
+    // Add a slight delay to ensure the hide class is added after the show class is removed
+    setTimeout(() => {
+      htmlModal.classList.add('hide');
+    }, 0);
+
+    // Set display to none after the animation ends
+    htmlModal.addEventListener('animationend', function handler() {
+      if (htmlModal.classList.contains('hide')) {
+        htmlModal.style.display = 'none';
+        htmlModal.classList.remove('hide'); // Reset the class for future use
+      }
+      htmlModal.removeEventListener('animationend', handler);
+      resetModal();
+    });
+  }
+
+</script>
