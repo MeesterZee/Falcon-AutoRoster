@@ -1,0 +1,172 @@
+<!-- FALCON THEMES LIBRARY v2.0 -->
+<!--
+  Usage: 
+    - Themes are set automatically on DOMContentLoaded
+    - setTheme(): Loads the theme from USER_SETTINGS
+    - saveTheme(): Writes the theme settings to USER_SETTINGS and sets the theme using setTheme()
+-->
+
+<!-- CSS THEMES -->
+<style>
+  :root, :root.Falcon-Light {
+    color-scheme: light;
+    --primary-color: #4db6ac; /* Teal 300 */
+    --accent-color: #80cbc4; /* Teal 200 */
+    --page-background-color: #eeeeee; /* Gray 200 */
+    --page-accent-color: white;
+    --menu-icon-color: black;
+    --element-background-color: white;
+    --element-accent-color: #e0e0e0; /* Gray 300 */
+    --text-primary-color: black;
+    --text-accent-color: #757575; /* Gray 600 */ 
+    --warning-color: #ff9800; /* Orange 500 */
+    --error-color: #f44336; /* Red 500 */
+  }
+
+  :root.Falcon-Dark {
+    color-scheme: dark;
+    --primary-color: #00796b; /* Teal 700 */
+    --accent-color: #00897b; /* Teal 600 */
+    --page-background-color: #2e2e2e; /* Same color as dark mode select */ 
+    --page-accent-color: #212121; /* Gray 900 */
+    --menu-icon-color: white;
+    --element-background-color: #121212; /* Gray Custom */
+    --element-accent-color: #424242; /* Gray 800 */
+    --text-primary-color: white;
+    --text-accent-color: #bdbdbd; /* Gray 400 */
+    --warning-color: #ff9800; /* Orange 500 */
+    --error-color: #f44336; /* Red 500 */
+  }
+
+  :root.Flamingo-Nights {
+    color-scheme: dark;
+    --primary-color: #ff4081; /* Pink A200 */
+    --accent-color: #ff80ab; /* Pink A100 */
+    --page-background-color: #2e2e2e; /* Same color as dark mode select */
+    --page-accent-color: #212121; /* Gray 900 */
+    --menu-icon-color: white;
+    --element-background-color: #121212; /* Gray Custom */
+    --element-accent-color: #424242; /* Gray 800 */
+    --text-primary-color: white;
+    --text-accent-color: #bdbdbd; /* Gray 400 */    
+    --warning-color: #ff9800; /* Orange 500 */
+    --error-color: #f44336; /* Red 500 */
+
+  }
+  
+  :root.Purple-Lightning {
+    color-scheme: dark;
+    --primary-color: #6200ea; /* Deep Purple A700 */
+    --accent-color: #7c4dff; /* Deep Purple A200 */
+    --page-background-color: #2e2e2e; /* Same color as dark mode select */
+    --page-accent-color: #212121; /* Gray 900 */
+    --menu-icon-color: white;
+    --element-background-color: #121212; /* Gray Custom */
+    --element-accent-color: #424242; /* Gray 800 */
+    --text-primary-color: white;
+    --text-accent-color: #bdbdbd; /* Gray 400 */    
+    --warning-color: #ff9800; /* Orange 500 */
+    --error-color: #f44336; /* Red 500 */
+  }
+
+  :root.Monochrome {
+    color-scheme: light;
+    --primary-color: #90a4ae; /* Blue Grey 300 */
+    --accent-color: #b0bec5; /* Blue Grey 200 */
+    --page-background-color: #cfd8dc; /* Blue Grey 100 */
+    --page-accent-color: #eceff1; /* Blue Grey 50 */
+    --menu-icon-color: black;
+    --element-background-color: white;
+    --element-accent-color: #e0e0e0; /* Gray 300 */
+    --text-primary-color: black;
+    --text-accent-color: #757575; /* Gray 600 */ 
+    --warning-color: #ff9800; /* Orange 500 */
+    --error-color: #f44336; /* Red 500 */
+  }
+
+  :root.Yuzu {
+    color-scheme: light;
+    --primary-color: #FFD54F; /* Amber 300 */
+    --accent-color: #FFE082; /* Amber 200 */
+    --page-background-color: #FFECB3; /* Amber 100 */
+    --page-accent-color: #FFF8E1; /* Amber 50 */
+    --menu-icon-color: black;
+    --element-background-color: white;
+    --element-accent-color: #e0e0e0; /* Gray 300 */
+    --text-primary-color: black;
+    --text-accent-color: #757575; /* Gray 600 */ 
+    --warning-color: #ff9800; /* Orange 500 */
+    --error-color: #f44336; /* Red 500 */
+  }
+</style>
+
+<!-- JAVASCRIPT FUNCTIONS -->
+<script type="text/javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    const theme = USER_SETTINGS.theme;
+    if (theme) {
+      setTheme(theme);
+    }
+  });
+
+  function setTheme(theme) {
+    const root = document.querySelector(':root');
+
+    // Define a dictionary mapping theme names to class names
+    const themeClasses = {
+      'falconLight': 'Falcon-Light',
+      'falconDark': 'Falcon-Dark',
+      'flamingoNights': 'Flamingo-Nights',
+      'monochrome': 'Monochrome',
+      'purpleLightning': 'Purple-Lightning',
+      'yuzu': 'Yuzu'
+    };
+
+    // Remove all theme classes from root element
+    Object.values(themeClasses).forEach(className => {
+      root.classList.remove(className);
+    });
+
+    // Check for custom theme
+    if (USER_SETTINGS.theme === 'custom') {
+      if (USER_SETTINGS.customThemeType === 'light') {
+        root.classList.add(themeClasses['falconLight']);
+      } else {
+        root.classList.add(themeClasses['falconDark']);
+      }
+
+      // Apply custom theme colors
+      root.style.setProperty('--primary-color', USER_SETTINGS.customThemePrimaryColor);
+      root.style.setProperty('--accent-color', USER_SETTINGS.customThemeAccentColor);
+    } else {
+      // Remove custom theme colors if any
+      root.style.removeProperty('--primary-color');
+      root.style.removeProperty('--accent-color');
+
+      USER_SETTINGS.customThemeType = null;
+      USER_SETTINGS.customThemePrimaryColor = null;
+      USER_SETTINGS.customThemeAccentColor = null;
+
+      // Add the selected theme to the root element
+      root.classList.add(themeClasses[theme]);
+    }
+  }
+  
+  function saveTheme() {
+    const theme = document.getElementById('theme').value;
+    
+    if (theme === 'custom') {
+      const themeType = document.getElementById('themeTypeSelect').value;
+      const primaryColor = document.getElementById('primaryColorPicker').value;
+      const accentColor = document.getElementById('accentColorPicker').value;
+
+      // Create user property values for the custom theme
+      USER_SETTINGS.customThemeType = themeType;
+      USER_SETTINGS.customThemePrimaryColor = primaryColor;
+      USER_SETTINGS.customThemeAccentColor = accentColor;
+    }
+  
+    USER_SETTINGS.theme = theme;
+    setTheme(theme);
+  }
+</script>
