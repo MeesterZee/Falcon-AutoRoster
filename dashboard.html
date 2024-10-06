@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Falcon AutoRoster</title>
+
+  <!-- Google Fonts: Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Icons v1.11.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- PDF Make v0.2.12 -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js'></script>
+
+  <!-- Custom libraries -->
+  <?!= include('falcon-ui.lib'); ?>
+  <?!= include('falcon-themes.lib'); ?>
+  <?!= include('falcon-sounds.lib'); ?>
+  <?!= include('falcon-pdf.lib'); ?>
+
+  <!-- Import user settings from properties service -->
+  <script>
+    let USER_SETTINGS = JSON.parse('<?= userSettings ?>'); // Inject user settings
+  </script>
+</head>
+
+<body>
+  <div id="loading-indicator"></div>
+  <div id="modal-container"></div>
+
+  {{NAVBAR}}
+  <div class="tool-bar" id="toolbar">
+    <button class="tool-bar-button" id="syncButton">
+      <i class="bi bi-arrow-repeat"></i>Sync
+    </button>
+    <button class="tool-bar-button" id="schoolInfoButton">
+      <i class="bi bi-info-circle"></i>School
+    </button>
+    <button class="tool-bar-button" id="rostersButton">
+      <i class="bi bi-card-list"></i>Rosters
+    </button>
+    <button class="tool-bar-button" id="labelsButton">
+      <i class="bi bi-tag"></i>Labels
+    </button>
+    <button class="tool-bar-button" id="exportDataButton">
+      <i class="bi bi-box-arrow-up"></i>Export
+    </button>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div class="column-container" id="page">
+    <div class="column">
+      <div class="column-header">
+        <h2 id="rosterHeader">
+          <!-- School Name - School Roster will be inserted here -->
+        </h2>
+      </div>
+      <div class="column-body">
+        <div class="search-container" style="margin-top: 20px; margin-bottom: 0;">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" id="studentSearch" placeholder="Search...">
+        </div>
+        <div class="search-filter-container">
+          <div style="margin-left: 10px;">Filter search:
+            <label class="switch" for="filterLastName">
+              <input type="checkbox" class="search-filter" id="filterLastName" data-column="0">
+              <span class="slider round"></span>
+            </label>Last Name
+            <label class="switch" for="filterFirstName">
+              <input type="checkbox" class="search-filter" id="filterFirstName" data-column="1">
+              <span class="slider round"></span>
+            </label>First Name
+            <label class="switch" for="filterGrade">
+              <input type="checkbox" class="search-filter" id="filterGrade" data-column="2">
+              <span class="slider round"></span>
+            </label>Grade
+            <label class="switch" for="filterClassroom">
+              <input type="checkbox" class="search-filter" id="filterClassroom" data-column="3">
+              <span class="slider round"></span>
+            </label>Classroom
+            <label class="switch" for="filterTeacher">
+              <input type="checkbox" class="search-filter" id="filterTeacher" data-column="4">
+              <span class="slider round"></span>
+            </label>Teacher
+            <label class="switch" for="filterEmergencyGroup">
+              <input type="checkbox" class="search-filter" id="filterEmergencyGroup" data-column="5">
+              <span class="slider round"></span>
+            </label>Emergency Group
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <div id="searchResults"></div>
+          <table id="schoolRoster">
+            <thead>
+              <tr>
+                <th>Last Name</th>
+                <th>First Name</th>
+                <th>Grade</th>
+                <th>Classroom</th>
+                <th>Teacher</th>
+                <th>Emergency Group</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHOOL INFO MODAL -->
+  <div class="modal-html" id="schoolInfoModal">
+    <div class="modal-htmlcontent">
+      <div class="modal-htmlheader">
+        <h2>School Information
+          <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
+        </h2>
+      </div>
+      <div class="modal-htmlbody">
+        <h3>School Information</h3>
+        <div class="table-wrapper">
+          <table id="schoolData">
+            <tr>
+              <td class="td2">School name:</td>
+              <td class="td2" id="schoolInfoSchoolName">
+            </tr>
+            <tr>
+              <td class="td2">School year:</td>
+              <td class="td2" id="schoolInfoSchoolYear">
+            </tr>
+            <tr>
+              <td class="td2">Total students:</td>
+              <td class="td2" id="schoolInfoTotalStudents">
+            </tr>
+            <tr>
+              <td class="td2">Last sync:</td>
+              <td class="td2" id="schoolInfoLastSync">
+            </tr>
+          </table>
+        </div>
+        <h3>Classroom Information</h3>
+        <div class="table-wrapper">
+          <table style="margin-bottom: 20px" id="schoolInfoClassData">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Classroom</th>
+                <th>Teacher</th>
+                <th>Students</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT ROSTERS MODAL -->
+  <div class="modal-html" id="exportRostersModal">
+    <div class="modal-htmlcontent">
+      <div class="modal-htmlheader">
+        <h2>Export Rosters
+          <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
+        </h2>
+      </div>
+      <div class="modal-htmlbody">
+        <h3>Roster Type</h3>
+        <label class="block-label" for="rosterTypeSelect">Select roster type:</label>
+        <select class="column-select" id="rosterTypeSelect">
+          <option value="classRoster">Class roster</option>
+          <option value="emergencyGroupRoster">Emergency group roster</option>
+          <option value="schoolRoster">School roster</option>
+        </select>
+        <div id="classroomSelect">
+          <label class="block-label" for="classRosterSelect">Select classroom:</label>
+          <select class="column-select" id="classRosterSelect" style="margin-bottom: 0;">
+            <!-- Classrooms will be inserted here -->
+          </select>
+        </div>
+        <div id="emergencyGroupSelect" style="display: none">
+          <label class="block-label" for="emergencyRosterSelect">Select emergency group:</label>
+          <select class="column-select" id="emergencyRosterSelect" style="margin-bottom: 0;">
+            <!-- Emergency groups will be inserted here -->
+          </select>
+        </div>
+        <h3>Roster Formatting</h3>
+        <div>
+          <span style="color: var(--text-primary-color)">
+          <label class="switch" style="margin-left: 10px; margin-top: 0;">
+            <input type="checkbox" id="showEmergencyMessage">
+            <span class="slider round"></span>
+          </label>Show emergency message</span>
+        </div>
+        <div>
+          <span style="color: var(--text-primary-color)">
+          <label class="switch" style="margin-left: 10px">
+            <input type="checkbox" id="showEmergencyColor">
+            <span class="slider round"></span>
+          </label>Show emergency group colors</span>
+        </div>
+        
+        <div class="modal-htmlbutton">
+          <button id="downloadRosterModalButton">Download Roster</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT LABELS MODAL -->
+  <div class="modal-html" id="exportLabelsModal">
+    <div class="modal-htmlcontent">
+      <div class="modal-htmlheader">
+        <h2>Export Labels
+          <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
+        </h2>
+      </div>
+      <div class="modal-htmlbody">
+        <h3>Label Formatting</h3>
+        <label class="block-label" for="labelTemplateSelect">Select label template:</label>
+        <select class="column-select" id="labelTemplateSelect">
+          <option value="avery5160">Avery 5160</option>
+          <option value="avery8167">Avery 8167</option>
+          <option value="avery95945">Avery 95945</option>
+        </select>
+        <label class="block-label" for="labelClassroomSelect">Select classroom:</label>
+        <select class="column-select" id="labelClassroomSelect">
+          <!-- Classrooms will be inserted here -->
+        </select>
+        <label class="block-label" for="labelFormatSelect">Select label text format:</label>
+        <select class="column-select" id="labelFormatSelect" style="margin-bottom: 0;">
+          <option value="labelStudent">Student name</option>
+          <option value="labelTeacher">Teacher name
+          <option value="labelStudentGrade">Student name and grade</option>
+          <option value="labelStudentTeacher">Student name and teacher</option>
+          <option value="labelEmergency">Student name and emergency group
+        </select>
+        <h3>Label Preview</h3>
+        <div id="labelPreview" class="rectangle">
+          <div id="labelRow1" style="font-size: 18px"><b>Student Name</b></div>
+          <div id="labelRow2" style="font-size: 18px"></div>
+        </div>
+        <div class="modal-htmlbutton">
+          <button id="downloadLabelsModalButton">Download Labels</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT DATA MODAL -->
+    <div class="modal-html" id="exportDataModal" >
+      <div class="modal-htmlcontent">
+        <div class="modal-htmlheader">
+          <h2>Export App Data
+            <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
+          </h2>
+        </div>
+        <div class="modal-htmlbody">
+          </label>
+          <h3>File Type</h3>
+          <label class="block-label" for="fileTypeSelect">Select file type:</label>
+          <select class="column-select" id="fileTypeSelect" style="margin-bottom: 0">
+            <option value="csv">Comma Separated Values (.csv)</option>
+            <option value="xlsx">Microsoft Excel (.xlsx)</option>
+          </select>
+          <div class="modal-htmlbutton">
+            <button id="exportDataModalButton">Download Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="javascript-code">
+    <?!= include('dashboard.js'); ?>
+  </div>
+</body>
+
+</html>
