@@ -1,0 +1,440 @@
+<!-- PDF Make v0.2.12 -->
+<!-- Sizing in points, where 1 inch = 72 points -->
+
+<script>
+  // Global Constants
+  const INCH_TO_POINTS = 72;
+  
+  const TABLE_FORMAT = {
+    paddingTop: function(i, node) { return 2; },
+    paddingBottom: function(i, node) { return 2; },
+    paddingLeft: function(i, node) { return 2; },
+    paddingRight: function(i, node) { return 0; },
+    hLineWidth: function(i, node) { return 1; },
+    vLineWidth: function(i, node) { return 1; },
+    fillColor: function(rowIndex, node, columnIndex) {
+      return (rowIndex % 2 === 0 && rowIndex !== 0) ? '#e0e0e0' : null;
+    }
+  };
+
+  const TABLE_STYLE = {
+    title: { fontSize: 20, bold: true, alignment: 'center', margin: [0, 5, 0, 5], fillColor: '#4db6ac' },
+    emergencyMessage: { fontSize: 14, bold: true, alignment: 'center', margin: [0, 5, 0, 5], color: '#f44336' },
+    tableHeader: { fontSize: 11, bold: true, alignment: 'left', fillColor: '#4db6ac' },
+    tableCell: { fontSize: 11, alignment: 'left', noWrap: true }
+  };
+  
+  /////////////
+  // ROSTERS //
+  /////////////
+
+  // Class Roster
+  function writeClassRoster(rosterData, fileName) {
+    const leftMargin = 0.25 * INCH_TO_POINTS;
+    const rightMargin = 0.25 * INCH_TO_POINTS;
+    const topMargin = 0.5 * INCH_TO_POINTS;
+    const bottomMargin = 0.5 * INCH_TO_POINTS;
+    const docContent = [];
+
+    rosterData.forEach((roster, index) => {
+      if (index > 0) {
+        docContent.push({ text: '', pageBreak: 'after' });
+      }
+
+      docContent.push(
+        {
+          table: {
+            dontBreakRows: true,
+            widths: [25, 100, 100, ...Array(14).fill('*')],
+            body: [
+              [
+                { text: roster.titleText, style: 'title', colSpan: 17 },
+                ...Array(16).fill('')
+              ]
+            ]
+          },
+          layout: TABLE_FORMAT
+        },
+        { text: roster.emergencyText, style: 'emergencyMessage' },
+        {
+          table: {
+            dontBreakRows: true,
+            widths: [25, 100, 100, ...Array(14).fill('*')],
+            body: [
+              [
+                { text: '#', style: 'tableHeader' },
+                { text: 'Last Name', style: 'tableHeader' },
+                { text: 'First Name', style: 'tableHeader' },
+                { text: '', style: 'tableHeader', colSpan: 14 },
+                ...Array(13).fill('') // Fill with empty strings to match the colSpan
+              ],
+              ...roster.rosterText
+            ]
+          },
+          layout: TABLE_FORMAT
+        }
+      );
+    });
+
+    const docDefinition = {
+      pageSize: 'LETTER',
+      pageOrientation: 'portrait',
+      pageMargins: [leftMargin, topMargin, rightMargin, bottomMargin],
+      content: docContent,
+      styles: TABLE_STYLE
+    };
+
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+
+  // Emergency Group Roster
+  function writeEmergencyGroupRoster(rosterData, fileName) {
+    const leftMargin = 0.25 * INCH_TO_POINTS;
+    const rightMargin = 0.25 * INCH_TO_POINTS;
+    const topMargin = 0.5 * INCH_TO_POINTS;
+    const bottomMargin = 0.5 * INCH_TO_POINTS;
+    const columnGap = 20;
+    const maxRowsPerTable = 35; // Maximum rows per table including the header
+    const docContent = [];
+
+    rosterData.forEach((roster, index) => {
+      if (index > 0) {
+        docContent.push({ text: '', pageBreak: 'after' });
+      }
+
+      // Add title and emergency text
+      docContent.push(
+        {
+          table: {
+            dontBreakRows: true,
+            widths: ['*'],
+            body: [
+              [
+                roster.titleText,
+              ]
+            ]
+          },
+          layout: TABLE_FORMAT
+        },
+        { text: roster.emergencyText, style: 'emergencyMessage' }
+      );
+
+      // Create unique table headers for each table
+      const createTableHeaders = () => [
+        { text: 'Last Name', style: 'tableHeader' },
+        { text: 'First Name', style: 'tableHeader' },
+        { text: 'Grade', style: 'tableHeader' },
+        { text: 'Class', style: 'tableHeader' },
+        { text: '', style: 'tableHeader' }
+      ];
+
+      let leftTableBody = [createTableHeaders()];
+      let rightTableBody = [createTableHeaders()];
+      let addToLeftColumn = true;
+      let currentRowIndex = 1; // Start from 1 because header is already included
+
+      roster.rosterText.forEach((row) => {
+        if (addToLeftColumn) {
+          leftTableBody.push(row);
+          currentRowIndex++;
+          
+          if (currentRowIndex > maxRowsPerTable) {
+            addToLeftColumn = false;
+            currentRowIndex = 2; // Reset row index for right column after header
+          }
+        } else {
+          rightTableBody.push(row);
+          currentRowIndex++;
+        }
+      });
+
+      const columns = [
+        {
+          width: '50%',
+          table: {
+            headerRows: 1,
+            dontBreakRows: true,
+            widths: [80, 80, 40, 40, 22],
+            body: leftTableBody
+          },
+          layout: TABLE_FORMAT
+        }
+      ];
+
+      if (rightTableBody.length > 1) { // More than just the header
+        columns.push({
+          width: '50%',
+          table: {
+            headerRows: 1,
+            dontBreakRows: true,
+            widths: [80, 80, 40, 40, 22],
+            body: rightTableBody
+        },
+        layout: TABLE_FORMAT
+        });
+      }
+
+      docContent.push({ columns: columns, columnGap: columnGap });
+    });
+
+    const docDefinition = {
+      pageSize: 'LETTER',
+      pageOrientation: 'portrait',
+      pageMargins: [leftMargin, topMargin, rightMargin, bottomMargin],
+      content: docContent,
+      styles: TABLE_STYLE
+    };
+
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+
+  // School Roster
+  function writeSchoolRoster(rosterData, fileName) {
+    const leftMargin = 0.25 * INCH_TO_POINTS;
+    const rightMargin = 0.25 * INCH_TO_POINTS;
+    const topMargin = 0.25 * INCH_TO_POINTS;
+    const bottomMargin = 0.25 * INCH_TO_POINTS;
+    const columnGap = 13.5;
+    const maxRowsPerTable = 27; // Maximum rows per table including the header
+    const docContent = [];
+
+    const addPageContent = (leftTableBody, centerTableBody, rightTableBody, isFirstPage = false) => {
+      if (!isFirstPage) {
+        docContent.push({ text: '', pageBreak: 'after' });
+      }
+
+      const columns = [];
+
+      if (leftTableBody.length > 1) {
+        columns.push({
+          width: '*',
+          table: {
+            headerRows: 1,
+            dontBreakRows: true,
+            widths: [80, 80, 35, 35],
+            body: leftTableBody
+          },
+          layout: TABLE_FORMAT
+        });
+      } else {
+        columns.push({ width: '*', text: '' });
+      }
+
+      if (centerTableBody.length > 1) {
+        columns.push({
+          width: '*',
+          table: {
+            headerRows: 1,
+            dontBreakRows: true,
+            widths: [80, 80, 35, 35],
+            body: centerTableBody
+          },
+          layout: TABLE_FORMAT
+        });
+      } else {
+        columns.push({ width: '*', text: '' });
+      }
+
+      if (rightTableBody.length > 1) {
+        columns.push({
+          width: '*',
+          table: {
+            headerRows: 1,
+            dontBreakRows: true,
+            widths: [80, 80, 35, 35],
+            body: rightTableBody
+          },
+          layout: TABLE_FORMAT
+        });
+      } else {
+        columns.push({ width: '*', text: '' });
+      }
+
+      docContent.push(
+        {
+          table: {
+            dontBreakRows: true,
+            widths: ['*'],
+            body: [
+              [
+                { text: currentRoster.titleText, style: 'title', colSpan: 1 },
+              ]
+            ]
+          },
+          layout: TABLE_FORMAT
+        },
+        { text: currentRoster.emergencyText, style: 'emergencyMessage' },
+        {
+          columns: columns,
+          columnGap: columnGap
+        }
+      );
+    };
+
+    let currentRoster;
+    let isFirstPage = true;
+
+    rosterData.forEach((roster, index) => {
+      currentRoster = roster;
+
+      // Create table headers
+      const createTableHeaders = () => [
+        { text: 'Last Name', style: 'tableHeader' },
+        { text: 'First Name', style: 'tableHeader' },
+        { text: 'Grade', style: 'tableHeader' },
+        { text: 'Class', style: 'tableHeader' }
+      ];
+
+      let leftTableBody = [createTableHeaders()];
+      let centerTableBody = [createTableHeaders()];
+      let rightTableBody = [createTableHeaders()];
+
+      let currentColumn = 'left';
+      let currentRowIndex = 1; // Start from 1 because header is already included
+
+      roster.rosterText.forEach((row) => {
+        if (currentColumn === 'left') {
+          leftTableBody.push(row);
+        } else if (currentColumn === 'center') {
+          centerTableBody.push(row);
+        } else if (currentColumn === 'right') {
+          rightTableBody.push(row);
+        }
+
+        currentRowIndex++;
+
+        if (currentRowIndex > maxRowsPerTable) {
+          currentRowIndex = 1; // Reset row index after header
+          if (currentColumn === 'left') {
+            currentColumn = 'center';
+          } else if (currentColumn === 'center') {
+            currentColumn = 'right';
+          } else if (currentColumn === 'right') {
+            addPageContent(leftTableBody, centerTableBody, rightTableBody, isFirstPage);
+
+            // Reset the tables for the next set of rows
+            leftTableBody = [createTableHeaders()];
+            centerTableBody = [createTableHeaders()];
+            rightTableBody = [createTableHeaders()];
+
+            currentColumn = 'left';
+            isFirstPage = false;
+          }
+        }
+      });
+
+      // Add remaining tables if they have more than just the headers
+      addPageContent(leftTableBody, centerTableBody, rightTableBody, isFirstPage);
+      isFirstPage = false;
+    });
+
+    const docDefinition = {
+      pageSize: 'LETTER',
+      pageOrientation: 'landscape',
+      pageMargins: [leftMargin, topMargin, rightMargin, bottomMargin],
+      content: docContent,
+      styles: TABLE_STYLE
+    };
+
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+
+  ////////////
+  // LABELS //
+  ////////////
+
+  function writeLabels(templateType, labelData, fileName) {
+    let config;
+
+    switch (templateType) {
+      case 'avery5160':
+        config = {
+          verticalGap: 0,
+          leftMargin: 0.1875 * INCH_TO_POINTS,
+          rightMargin: 0.1875 * INCH_TO_POINTS,
+          topMargin: 0.5 * INCH_TO_POINTS,
+          bottomMargin: 0.5 * INCH_TO_POINTS,
+          labelHeight: 1 * INCH_TO_POINTS,
+          tableColumns: [
+            2.625 * INCH_TO_POINTS, // Label width
+            0.125 * INCH_TO_POINTS, // Horizontal gap
+            2.625 * INCH_TO_POINTS, // Label width
+            0.125 * INCH_TO_POINTS, // Horizontal gap
+            2.625 * INCH_TO_POINTS  // Label width
+          ]
+        };
+        break;
+      
+      case 'avery8167':
+        config = {
+          verticalGap: 0,
+          leftMargin: 0.3 * INCH_TO_POINTS,
+          rightMargin: 0.3 * INCH_TO_POINTS,
+          topMargin: 0.5 * INCH_TO_POINTS,
+          bottomMargin: 0.5 * INCH_TO_POINTS,
+          labelHeight: 0.5 * INCH_TO_POINTS,
+          tableColumns: [
+            1.75 * INCH_TO_POINTS,  // Label width
+            0.3 * INCH_TO_POINTS,   // Horizontal gap
+            1.75 * INCH_TO_POINTS,  // Label width
+            0.3 * INCH_TO_POINTS,   // Horizontal gap
+            1.75 * INCH_TO_POINTS,  // Label width
+            0.3 * INCH_TO_POINTS,   // Horizontal gap
+            1.75 * INCH_TO_POINTS   // Label width
+          ]
+        };
+        break;
+
+      case 'avery95945':
+        config = {
+          verticalGap: 0,
+          leftMargin: 0.15 * INCH_TO_POINTS,
+          rightMargin: 0.15 * INCH_TO_POINTS,
+          topMargin: 0.5 * INCH_TO_POINTS,
+          bottomMargin: 0.5 * INCH_TO_POINTS,
+          labelHeight: 2 * INCH_TO_POINTS,
+          tableColumns: [
+            4 * INCH_TO_POINTS,        // Label width
+            0.1875 * INCH_TO_POINTS,   // Horizontal gap
+            4 * INCH_TO_POINTS,        // Label width
+          ]
+        };
+        break;
+    }
+
+    const tableFormat = {
+      paddingTop: function(i, node) { return 0; },
+      paddingBottom: function(i, node) { return 0; },
+      paddingLeft: function(i, node) { return 0; },
+      paddingRight: function(i, node) { return 0; },
+      hLineWidth: function(i, node) { return 0; },
+      vLineWidth: function(i, node) { return 0; }
+    };
+
+    const docDefinition = {
+      pageSize: 'LETTER',
+      pageOrientation: 'portrait',
+      pageMargins: [config.leftMargin, config.topMargin, config.rightMargin, config.bottomMargin],
+
+      content: [
+        {
+          table: {
+            widths: [...config.tableColumns],
+            heights: config.labelHeight,
+            body: labelData,
+            dontBreakRows: true,
+          },
+          layout: tableFormat,
+          style: templateType
+        }
+      ],
+      styles: {
+        avery5160: { fontSize: 14, margin: 0, alignment: 'center' },
+        avery8167: { fontSize: 10, margin: 0, alignment: 'center' },
+        avery95945: { fontSize: 16, margin: 0, alignment: 'center' }
+      }
+    };
+
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+</script>
