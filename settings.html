@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Falcon AutoRoster</title>
+
+  <!-- Google Fonts: Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap Icons v1.11.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- Custom libraries -->
+  <?!= include('falcon-ui.lib'); ?>
+  <?!= include('falcon-themes.lib'); ?>
+  <?!= include('falcon-sounds.lib'); ?>
+
+  <!-- Import user settings from properties service -->
+  <script>
+    let USER_SETTINGS = JSON.parse('<?= userSettings ?>'); // Inject user settings
+  </script>
+</head>
+
+<body>
+  <div id="loading-indicator"></div>
+  <div id="modal-container"></div>
+
+  {{NAVBAR}}
+  <div class="tool-bar" id="toolbar">
+    <button class="tool-bar-button" id="saveChangesButton">
+      <i class="bi bi-cloud-download"></i>Save
+    </button>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div class="column-container" id="page">
+    <div class="column">
+      <div class="column-header">
+        <h2>User Settings</h2>
+      </div>
+      <div class="column-body">
+        <h3>Appearance</h3>
+        <label class="block-label" for="theme">Select theme:</label>
+        <select class="column-select" style="margin-bottom: 0" id="theme">
+          <option value="falconLight">Falcon (Light)</option>
+          <option value="falconDark">Falcon (Dark)</option>
+          <option value="flamingoNights">Flamingo Nights (Dark)</option>
+          <option value="monochrome">Monochrome (Light)</option>
+          <option value="purpleLightning">Purple Lightning (Dark)</option>
+          <option value="yuzu">Yuzu (Light)</option>
+          <option value="custom">Custom...</option>
+        </select>
+        <div class="table-wrapper" style="margin-top: 10px" id="customTheme">
+          <table>
+            <tr>
+              <td class="td2">Theme style:</td>
+              <td class="td2">
+                <select class="table-select" id="themeTypeSelect">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </td>
+            </tr>
+            <tr>
+              <td class="td2" >Primary color:</td>
+              <td class="td2">
+                <input class="table-input" type="color" id="primaryColorPicker">
+              </td>
+            </tr>
+            <tr>
+              <td class="td2">Accent color:</td>
+              <td class="td2">
+                <input class="table-input" type="color" id="accentColorPicker">
+              </td>
+            </tr>
+          </table>
+        </div>
+        <h3>Sound Effects</h3>
+        <div class="table-wrapper" id="notificationSoundSelect">
+        <table>
+          <tr>
+            <td class="td2">Alert:</td>
+            <td class="td2">
+              <select class="table-select" id="alertSound">
+                <option value="alert01">Bonk</option>
+                <option value="alert02">Question</option>
+                <option value="alert03">Alarm</option>
+                <option value="alert04">Uh Oh</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class="td2">Sync complete:</td>
+            <td class="td2">
+              <select class="table-select" id="syncSound">
+                <option value="sync01">Smile</option>
+                <option value="sync02">Happy</option>
+                <option value="sync03">Triad</option>
+                <option value="sync04">Fly Away</option>
+                <option value="sync05">Bubble</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td class="td2">Success:</td>
+            <td class="td2">
+              <select class="table-select" id="successSound">
+                <option value="success01">Blink</option>
+                <option value="success02">Chime</option>
+                <option value="success03">Digital</option>
+                <option value="success04">Compliment</option>
+                <option value="success05">Ambient</option>
+              </select>
+            </td>
+          </tr>
+        </table>
+        </div>
+        <span style="color: var(--text-primary-color)">
+        <label class="switch" style="margin-left: 10px">
+          <input type="checkbox" id="silentModeSwitch">
+          <span class="slider round"></span>
+        </label>
+        Silent mode</span>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="column-header">
+        <h2>School Settings</h2>
+      </div>
+      <div class="column-body">
+        <h3>School Information</h3>
+        <div class="table-wrapper">
+          <table>
+            <tr>
+              <td class="td2">School name:</td>
+              <td class="td2">
+                <input class="table-input" type="text" id="schoolName">
+              </td>
+            </tr>
+            <tr>
+              <td class="td2">School year:</td>
+              <td class="td2">
+                <select class="table-select" id="schoolYear">
+                <script>
+                  let min = new Date().getFullYear() - 10;
+                  max = min + 20;
+                  select = document.getElementById('schoolYear');
+                  for (let i = min; i<=max; i++){
+                    let opt = document.createElement('option');
+                    opt.value = i + "-" + (i + 1);
+                    opt.text = i + "-" + (i + 1);
+                    select.appendChild(opt);
+                  }
+                </script>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="td2">Google domain:</td>
+              <td class="td2">
+                <input class="table-input" type="text" id="domain">
+              </td>
+            </tr>
+          </table>
+        </div>
+        <h3>School Emergency Message</h3>
+        <label class="block-label" for="emergencyMessage">Message:</label>
+        <input class="column-input" type="text" id="emergencyMessage">
+        <h3>Google Admin Sync</h3>
+        <label class="block-label" for="classroomSelect" style="margin-top: 10px;">Select classroom:</label>
+        <select class="column-select" id="classroomSelect"></select>
+        <label class="block-label" for="ouPath">Organizational unit path:</label>
+        <input class="column-input" type="text" id="ouPath">
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="column-header">
+        <h2>Roster Settings</h2>
+      </div>
+      <div class="column-body">
+        <h3>Classroom/Teacher Information</h3>
+        <div class="table-wrapper">
+          <table id="classroomSettings">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Classroom</th>
+                <th>Teacher</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+        <h3>Emergency Group Information</h3>
+        <div class="table-wrapper">
+          <table id="emergencyGroups">
+            <thead>
+              <tr>
+                <th>Range</th>
+                <th>Group</th>
+                <th>Color</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="javascript-code">
+    <?!= include('settings.js'); ?>
+  </div>
+</body>
+
+</html>
