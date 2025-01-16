@@ -1,4 +1,4 @@
-<!-- FALCON UI LIBRARY v2.0 -->
+<!-- FALCON UI LIBRARY v2.1 -->
 <!--
   Usage: 
     Toast:
@@ -33,18 +33,6 @@
 
 <!-- CSS -->
 <style>
-  /* Hide scrollbars */
-  html {
-    /* IE and Edge */
-    -ms-overflow-style: none;
-    /* Firefox */
-    scrollbar-width: none;
-  }
-  ::-webkit-scrollbar {
-    /* Chrome, Opera, Safari */
-    display: none;
-  }
-
   /* Hide default values in date/time inputs */
   input[type='date']:not(:focus):in-range::-webkit-datetime-edit-year-field,
   input[type='date']:not(:focus):in-range::-webkit-datetime-edit-month-field,
@@ -84,9 +72,78 @@
   }
 
   /***************/
+  /* CHART CLASS */
+  /***************/
+
+  #chart-container {
+    background-color: var(--element-background-color);
+    width: calc(100% - 20px);
+    margin: 10px 10px 0 10px;
+    padding: 5px;
+    height: calc(100% - 59px);
+    border: 2px solid var(--element-accent-color);
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+
+  #chart-div {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Chart pagination text */
+  #chart-div text {
+    fill: var(--text-primary-color);
+  }
+
+  /* Chart pagination arrows */
+  #chart-div path {
+    fill: var(--element-accent-color);
+  }
+
+  /* Use HTML tooltips to override default styles */
+  .google-visualization-tooltip {
+    background-color: var(--element-background-color) !important;
+    font-color: var(--text-primary-color) !important;
+    border: solid 2px var(--element-accent-color) !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+  }
+
+  /* Tooltip text color */
+  div.google-visualization-tooltip > ul > li > span {
+    color: var(--text-primary-color) !important;
+  }
+
+  /*******************/
+  /* SCROLLBAR CLASS */
+  /*******************/
+
+  /* Style the entire scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;  /* Thin scrollbar */
+  }
+
+  /* Style the scrollbar track */
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Style the draggable part (thumb) */
+  ::-webkit-scrollbar-thumb {
+    background: var(--element-accent-color);
+    border-radius: 10px;
+  }
+
+  /* Hover effect for the thumb */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--element-accent-color);
+  }
+
+  /***************/
   /* TOAST CLASS */
   /***************/
-  
+
   #toast-container {
     position: fixed;
     bottom: 10px;
@@ -102,7 +159,7 @@
   .toast {
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
-    background-color: var(--page-accent-color);
+    background-color: var(--page-background-color);
     padding: 10px;
     border-radius: 10px;
     opacity: 0;
@@ -152,8 +209,8 @@
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    transform: translate3d(-50%, -50%, 0);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
     width: 350px;
   }
 
@@ -210,14 +267,14 @@
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
     /* Background hack to prevent bleed in corners from parent div */
-    background: linear-gradient(transparent 0%, transparent 2%, var(--page-accent-color) 2%);
+    background: linear-gradient(transparent 0px, transparent 10px, var(--page-accent-color) 10px);
     border-radius: 10px;
-    position: relative;
+    position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
-    width: 450px;
+    transform: translate3d(-50%, -50%, 0);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+    width: 500px;
     max-height: 85vh;
     overflow: hidden;
   }
@@ -269,26 +326,9 @@
     transition: 0.5s;
   }
 
-  .modal-buttons button:hover, .modal-htmlbutton button:hover {
-    background-color: var(--primary-color);
-  }
 
-  .modal-htmlclose {
-    font-size: 20px;
-    color: var(--text-primary-color);
-    background: none;
-    padding: 0;
-    margin: 7px 10px 0 0;
-    position: absolute;
-    top: 0;
-    right: 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    box-sizing: border-box;
-    z-index: 10;
+  .modal-buttons button:hover, .modal-htmlbutton button:hover, .help-button button:hover {
+    background-color: var(--primary-color);
   }
 
   /*************/
@@ -332,80 +372,29 @@
     }
   }
 
-  /***************/
-  /* RADIO CLASS */
-  /***************/
-
-  label.radio-label {
-    display: block;
-    position: relative;
-    font-size: 16px;
-    color: var(--text-primary-color);
-    padding-left: 29px;
-    margin: 0 10px 10px 10px;
-    cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-
-  /* Hide the browser's default radio button */
-  .radio-label input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  /* Create a custom radio button */
-  .radio-select {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 14px;
-    width: 14px;
-    background-color: var(--element-background-color);
-    border-radius: 50%;
-    border: 2px solid var(--element-accent-color);
-  }
-
-  /* When the radio button is checked, add a blue background */
-  .radio-label input:checked~.radio-select {
-    background-color: var(--primary-color);
-  }
-
-  /* Create the indicator (the dot/circle - hidden when not checked) */
-  .radio-select:after {
-    content: "";
-    position: absolute;
-    display: none;
-  }
-
-  /* Show the indicator (dot/circle) when checked */
-  .radio-label input:checked~.radio-select:after {
-    display: block;
-  }
-
-  /* Style the indicator (dot/circle) */
-  .radio-label .radio-select:after {
-    top: 4px;
-    left: 4px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--element-background-color);
-  }
-
   /***********************/
   /* TOGGLE SWITCH CLASS */
   /***********************/
 
+  .switch-container {
+    background-color: var(--element-background-color);
+    margin: 0 10px;
+    border: 2px solid var(--element-accent-color);
+    border-radius: 10px;
+    padding-left: 5px;
+    font-size: 16px;
+  }
+
   .switch {
     position: relative;
     display: inline-block;
-    width: 32px;
-    height: 18px;
-    margin: 10px 5px 0 15px;
+    width: 30px;
+    height: 16px; /* Reduced by 2px to match text bottom */
+    vertical-align: -1px; /* Keep this the same to maintain top alignment */
+    margin-right: 10px;
+    margin-left: 0;
+    margin-top: 7px;
+    margin-bottom: 7px;
   }
 
   .switch input { 
@@ -422,7 +411,6 @@
     right: 0;
     bottom: 0;
     background-color: var(--element-accent-color);
-    -webkit-transition: .4s;
     transition: .4s;
     border-radius: 34px;
   }
@@ -430,26 +418,21 @@
   .slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
+    height: 12px; /* Adjusted for new switch height */
+    width: 12px;
     left: 2px;
     bottom: 2px;
     background-color: white;
-    -webkit-transition: .4s;
     transition: .4s;
     border-radius: 50%;
-    z-index: 1; /* Ensure the handle is above the background */
   }
 
   input:checked + .slider {
-    background-color: var(--primary-color);
+      background-color: var(--primary-color);
   }
 
   input:checked + .slider:before {
-    -webkit-transform: translateX(14px);
-    -ms-transform: translateX(14px);
-    transform: translateX(14px);
-    z-index: 1; /* Ensure the handle is above the background */
+      transform: translateX(14px);
   }
 
   /***************************/
@@ -483,6 +466,7 @@
     background-color: var(--page-background-color);
     margin: 0;
     padding: 0;
+    overflow: hidden; /* Hide scrollbars */
   }
 
   #page {
@@ -770,7 +754,7 @@
     cursor: default;
     position: sticky;
     top: 0;
-    z-index: 3;
+    z-index: 1;
     transition: all 0.5s;
   }
 
@@ -794,7 +778,7 @@
   label {
     font-size: 16px;
     color: var(--text-primary-color);
-    margin: 0 0 0 10px;
+    margin: 0 10px 0px 10px;
   }
 
   label.block-label {
@@ -832,6 +816,14 @@
     color: var(--text-primary-color);
   }
 
+  select:disabled {
+    appearance: none;  /* For most browsers */
+    -webkit-appearance: none;  /* For Chrome/Safari */
+    -moz-appearance: none;  /* For Firefox */
+    color: black !important;
+    opacity: 1;
+  }
+
   /***************/
   /* TABLE CLASS */
   /***************/
@@ -839,11 +831,13 @@
   .table-wrapper {
     margin: 0 10px;
     border-radius: 10px;
+    flex: 1; /* Allow it to take remaining space */
+    overflow-y: auto; /* Make only the table wrapper scrollable */
   }
 
   table {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 0px;
     border-spacing: 0;
     border-radius: 10px;
     border: 1px solid var(--element-accent-color);
@@ -986,7 +980,7 @@
     overflow: hidden;
     background: linear-gradient(transparent 0%, transparent 2%, var(--page-accent-color) 2%);
     border-radius: 10px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: column;
   }
@@ -1020,7 +1014,7 @@
   .column-select {
     width: calc(100% - 20px);
     box-sizing: border-box;
-    margin: 0 10px 10px 10px;
+    margin: 0 10px 0 10px;
     padding: 5px 5px 5px 0;
     border: none;
     border-radius: 10px;
@@ -1029,27 +1023,55 @@
   }
 
   /* Editable content box class */
+  .column-textarea {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    background-color: var(--element-background-color);
+    padding: 5px;
+    margin: 0 10px 0 10px;
+    width: calc(100% - 20px);
+    height: 250px;
+    box-sizing: border-box;
+    overflow: scroll;
+    overflow-x: hidden;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+  
   .rich-text-box {
     background-color: var(--element-background-color);
     padding: 5px;
-    margin: 0 10px 20px 10px;
+    margin: 0 10px 0 10px;
     width: calc(100% - 20px);
     height: 250px;
     box-sizing: border-box;
     overflow: scroll;
     overflow-wrap: break-word;
+    overflow-x: hidden;
     border-radius: 10px;
     border: 2px solid var(--element-accent-color);
   }
 
   .warning {
-    margin: 15px 10px 0 10px;
-    padding: 5px;
+    margin: 0px 10px;
+    padding: 0 10px; /* Remove vertical padding */
     width: calc(100% - 20px);
     box-sizing: border-box;
     background-color: var(--orange);
     border: none;
     border-radius: 10px;
+    height: 34px;
+    display: flex;
+    align-items: center; /* Vertically center content */
+  }
+
+  .warning i {
+    margin-right: 5px; /* Optional: spacing between icon and text */
+    vertical-align: middle; /* Override Bootstrap's vertical align */
+    align-self: center; /* Ensure it follows flexbox vertical alignment */
+    width: auto; /* Override Bootstrap's width */
+    height: auto; /* Override Bootstrap's height */
   }
 
   .javascript-code {
@@ -1087,14 +1109,6 @@
     pointer-events: none; /* Prevents icon from blocking input interactions */
     color: var(--text-primary-color); /* Icon color */
   }
-
-  .search-filter-container {
-    margin-bottom: 20px;
-  }
-
-  ///////////////////////////////////////////////
-  // Custom rectangle class for label printing //
-  ///////////////////////////////////////////////
   
   .rectangle {
     height: 96px;
@@ -1102,7 +1116,7 @@
     color: var(--text-primary-color);
     background-color: var(--element-background-color);
     border-radius: 10px;
-    border: 2px solid var(--text-primary-color);
+    border: 2px solid var(--element-accent-color);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -1110,7 +1124,6 @@
     align-items: center;
     margin: 10px 70px 0 70px;
   }
-  
 </style>
 
 <!-- JAVASCRIPT FUNCTIONS -->
@@ -1244,8 +1257,11 @@
         htmlModal.classList.remove('hide'); // Reset the class for future use
       }
       htmlModal.removeEventListener('animationend', handler);
-      resetModal();
     });
+    
+    setTimeout(() => {
+      resetModal();
+    }, 200); // Adjust this delay to match your modal's close animation duration
   }
 
 </script>
