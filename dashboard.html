@@ -58,44 +58,44 @@
     <div class="column">
       <div class="column-header">
         <h2 id="rosterHeader">
-          <!-- School Name - School Roster will be inserted here -->
+          <!-- School Name - School Roster - School Year will be inserted here -->
         </h2>
       </div>
-      <div class="column-body">
+      <div class="column-body" style="display: flex; flex-direction: column; overflow: hidden;">
         <div class="search-container" style="margin-top: 20px; margin-bottom: 0;">
           <i class="bi bi-search search-icon"></i>
           <input type="text" id="studentSearch" placeholder="Search...">
         </div>
         <div class="search-filter-container">
           <div style="margin-left: 10px;">Filter search:
-            <label class="switch" for="filterLastName">
+            <label class="switch" for="filterLastName" style="margin-left: 10px">
               <input type="checkbox" class="search-filter" id="filterLastName" data-column="0">
-              <span class="slider round"></span>
+              <span class="slider"></span>
             </label>Last Name
-            <label class="switch" for="filterFirstName">
+            <label class="switch" for="filterFirstName" style="margin-left: 20px">
               <input type="checkbox" class="search-filter" id="filterFirstName" data-column="1">
-              <span class="slider round"></span>
+              <span class="slider"></span>
             </label>First Name
-            <label class="switch" for="filterGrade">
+            <label class="switch" for="filterGrade" style="margin-left: 20px">
               <input type="checkbox" class="search-filter" id="filterGrade" data-column="2">
-              <span class="slider round"></span>
+              <span class="slider"></span>
             </label>Grade
-            <label class="switch" for="filterClassroom">
+            <label class="switch" for="filterClassroom" style="margin-left: 20px">
               <input type="checkbox" class="search-filter" id="filterClassroom" data-column="3">
-              <span class="slider round"></span>
+              <span class="slider"></span>
             </label>Classroom
-            <label class="switch" for="filterTeacher">
+            <label class="switch" for="filterTeacher" style="margin-left: 20px">
               <input type="checkbox" class="search-filter" id="filterTeacher" data-column="4">
-              <span class="slider round"></span>
+              <span class="slider"></span>
             </label>Teacher
-            <label class="switch" for="filterEmergencyGroup">
+            <label class="switch" for="filterEmergencyGroup" style="margin-left: 20px">
               <input type="checkbox" class="search-filter" id="filterEmergencyGroup" data-column="5">
-              <span class="slider round"></span>
+              <span class="slider"></span>
             </label>Emergency Group
           </div>
         </div>
-        <div class="table-wrapper">
-          <div id="searchResults"></div>
+        <div style="margin: 10px 0 0 10px;" id="searchResults"></div>
+        <div class="table-wrapper" style="margin: 5px 0 0 10px; padding-right: 10px;">
           <table id="schoolRoster">
             <thead>
               <tr>
@@ -177,14 +177,14 @@
       <div class="modal-htmlbody">
         <h3>Roster Type</h3>
         <label class="block-label" for="rosterTypeSelect">Select roster type:</label>
-        <select class="column-select" id="rosterTypeSelect">
+        <select class="column-select" style="margin-bottom: 10px;" id="rosterTypeSelect">
           <option value="classRoster">Class roster</option>
           <option value="emergencyGroupRoster">Emergency group roster</option>
           <option value="schoolRoster">School roster</option>
         </select>
         <div id="classroomSelect">
           <label class="block-label" for="classRosterSelect">Select classroom:</label>
-          <select class="column-select" id="classRosterSelect" style="margin-bottom: 0;">
+          <select class="column-select" id="classRosterSelect">
             <!-- Classrooms will be inserted here -->
           </select>
         </div>
@@ -195,21 +195,20 @@
           </select>
         </div>
         <h3>Roster Formatting</h3>
-        <div>
-          <span style="color: var(--text-primary-color)">
-          <label class="switch" style="margin-left: 10px; margin-top: 0;">
-            <input type="checkbox" id="showEmergencyMessage">
-            <span class="slider round"></span>
-          </label>Show emergency message</span>
-        </div>
-        <div>
-          <span style="color: var(--text-primary-color)">
-          <label class="switch" style="margin-left: 10px">
-            <input type="checkbox" id="showEmergencyColor">
-            <span class="slider round"></span>
-          </label>Show emergency group colors</span>
-        </div>
-        
+        <div class="switch-container">
+          <div>
+            <label class="switch">
+              <input type="checkbox" id="showEmergencyMessage">
+              <span class="slider round"></span>
+            </label>Show emergency message
+          </div>
+          <div>
+            <label class="switch">
+              <input type="checkbox" id="showEmergencyColor">
+              <span class="slider round"></span>
+            </label>Show emergency group colors
+          </div>  
+        </div> 
         <div class="modal-htmlbutton">
           <button id="downloadRosterModalButton">Download Roster</button>
         </div>
@@ -228,17 +227,17 @@
       <div class="modal-htmlbody">
         <h3>Label Formatting</h3>
         <label class="block-label" for="labelTemplateSelect">Select label template:</label>
-        <select class="column-select" id="labelTemplateSelect">
+        <select class="column-select" style="margin-bottom: 10px;" id="labelTemplateSelect">
           <option value="avery5160">Avery 5160</option>
           <option value="avery8167">Avery 8167</option>
           <option value="avery95945">Avery 95945</option>
         </select>
         <label class="block-label" for="labelClassroomSelect">Select classroom:</label>
-        <select class="column-select" id="labelClassroomSelect">
+        <select class="column-select" style="margin-bottom: 10px;" id="labelClassroomSelect">
           <!-- Classrooms will be inserted here -->
         </select>
         <label class="block-label" for="labelFormatSelect">Select label text format:</label>
-        <select class="column-select" id="labelFormatSelect" style="margin-bottom: 0;">
+        <select class="column-select" id="labelFormatSelect">
           <option value="labelStudent">Student name</option>
           <option value="labelTeacher">Teacher name
           <option value="labelStudentGrade">Student name and grade</option>
@@ -261,7 +260,7 @@
     <div class="modal-html" id="exportDataModal" >
       <div class="modal-htmlcontent">
         <div class="modal-htmlheader">
-          <h2>Export App Data
+          <h2>Export Application Data
             <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
           </h2>
         </div>
