@@ -1,9 +1,7 @@
 <script type="text/javascript">
   // Global variables  
   // let USER_SETTINGS; // Defined in HTML
-  let SCHOOL_SETTINGS;
-  let CLASSROOM_SETTINGS;
-  let EMERGENCY_SETTINGS;
+  let APP_SETTINGS;
   
   // Global flags
   let saveFlag = true; // True if all changes saved, false if unsaved changes
@@ -22,31 +20,19 @@
       toolbar.style.display = 'none';
       page.style.display = 'none';
 
-      // Fetch initial data
-      const [schoolSettings, classroomSettings, emergencySettings] = await Promise.all([
+      // Fetch data in parallel (async not needed but allows for future data streams)
+      const [appSettings] = await Promise.all([
         new Promise((resolve, reject) => {
-          google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getSchoolSettings();
-        }),
-        new Promise((resolve, reject) => {
-          google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getClassroomSettings();
-        }),
-        new Promise((resolve, reject) => {
-          google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getEmergencySettings();
+          google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getAppSettings();
         })
       ]);
 
       // Set global variables
-      SCHOOL_SETTINGS = schoolSettings;
-      CLASSROOM_SETTINGS = classroomSettings;
-      EMERGENCY_SETTINGS = emergencySettings;
+      APP_SETTINGS = appSettings;
 
       // Populate elements with data
       await Promise.all([
-        setColorPicker(),
         loadSettings(),
-        populateGoogleAdminSync(),
-        populateClassroomTeacher(),
-        populateEmergencyGroups()
       ]);
 
       setEventListeners(); // Set event listeners last to ensure tables are built before attaching
@@ -104,7 +90,7 @@
     });
 
     alertSoundSelect.addEventListener('change', function() {
-      USER_SETTINGS.alertSound = alertSoundSelect.value;
+      USER_SETTINGS.alertSound = alertSoundSelect.value
       playNotificationSound("alert");
     });
 
@@ -118,32 +104,24 @@
       playNotificationSound("success");
     });
 
-    document.getElementById('silentModeSwitch').addEventListener('change', saveAlert);
+    document.getElementById('silentModeSwitch').addEventListener('change', function() {
+      USER_SETTINGS.silentMode = this.checked ? 'true' : 'false';
+      saveAlert();
+    });
 
     classroomSelect.addEventListener('change', (event) => {
       const selectedIndex = event.target.value;
-      ouPathInput.value = CLASSROOM_SETTINGS[selectedIndex]['Google OU Path'];
+      ouPathInput.value = APP_SETTINGS.classroomSettings[selectedIndex].ouPath;
     });
 
-    // Event listener for changing the OU Path input
-      ouPathInput.addEventListener('input', () => {
-        const selectedIndex = classroomSelect.value;
-        CLASSROOM_SETTINGS[selectedIndex]['Google OU Path'] = ouPathInput.value;
-      });
+    ouPathInput.addEventListener('input', () => {
+      const selectedIndex = classroomSelect.value;
+      APP_SETTINGS.classroomSettings[selectedIndex].ouPath = ouPathInput.value;
+    });
 
     saveChangesButton.addEventListener('click', saveSettings);
 
     console.log("Complete!");
-  }
-
-  function setColorPicker() {
-    const themeType = document.getElementById('themeTypeSelect');
-    const primaryColorPicker = document.getElementById('primaryColorPicker');
-    const accentColorPicker = document.getElementById('accentColorPicker');
-
-    themeTypeSelect.value = getComputedStyle(document.documentElement).getPropertyValue('color-scheme').trim();
-    primaryColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-    accentColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
   }
 
   ///////////////////
@@ -154,8 +132,10 @@
     console.log("Loading settings...");
 
     // Appearance
+    setColorPicker();
     const themeSelect = document.getElementById('theme');
     const customTheme = document.getElementById('customTheme');
+    themeSelect.value = USER_SETTINGS.theme;
 
     if (USER_SETTINGS.theme === "custom") {
       customTheme.style.display = 'block';
@@ -163,153 +143,108 @@
       customTheme.style.display = 'none';
     }
 
-    themeSelect.value = USER_SETTINGS.theme;
-
-    // Sound Effects
-    const silentModeChecked = USER_SETTINGS.silentMode === 'true'; // Convert string to boolean
-    document.getElementById('silentModeSwitch').checked = silentModeChecked;
+    // Sound effects
+    const silentMode = USER_SETTINGS.silentMode === 'true'; // Convert string to boolean
     document.getElementById('alertSound').value = USER_SETTINGS.alertSound;
     document.getElementById('syncSound').value = USER_SETTINGS.syncSound;
     document.getElementById('successSound').value = USER_SETTINGS.successSound;
+    document.getElementById('silentModeSwitch').checked = silentMode; // Use boolean to set switch state
 
-    // School Information
-    document.getElementById('schoolName').value = SCHOOL_SETTINGS['School Name'];
-    document.getElementById('schoolYear').value = SCHOOL_SETTINGS['School Year'];
-    document.getElementById('domain').value = SCHOOL_SETTINGS['Google Domain'];
+    // School information
+    document.getElementById('schoolName').value = APP_SETTINGS.schoolSettings.schoolName || '';
+    document.getElementById('schoolYear').value = APP_SETTINGS.schoolSettings.schoolYear || '';
+    document.getElementById('domain').value = APP_SETTINGS.schoolSettings.googleDomain || '';
+
+    // School emergency message
+    document.getElementById('emergencyMessage').value = APP_SETTINGS.schoolSettings.emergencyMessage || '';
+
+    // Google admin sync
+    loadGoogleAdminSync(APP_SETTINGS.classroomSettings);
+
+    // Classroom/teacher information
+    loadClassroomSettings(APP_SETTINGS.classroomSettings);
         
-    // Emergency Message
-    const message = (EMERGENCY_SETTINGS.find(obj => obj['Message']) || {})['Message'];
-    document.getElementById('emergencyMessage').value = message;
+    // Emergency group information
+    loadEmergencyGroupSettings(APP_SETTINGS.emergencyGroupSettings);
 
     console.log("Complete!");
   }
 
-  function populateGoogleAdminSync() {
+  function setColorPicker() {
+    const themeTypeSelect = document.getElementById('themeTypeSelect');
+    const primaryColorPicker = document.getElementById('primaryColorPicker');
+    const accentColorPicker = document.getElementById('accentColorPicker');
+
+    themeTypeSelect.value = getComputedStyle(document.documentElement).getPropertyValue('color-scheme').trim();
+    primaryColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+    accentColorPicker.value = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+  }
+
+  function loadGoogleAdminSync(syncSettings) {
     const select = document.getElementById('classroomSelect');
-    select.innerHTML = '';
-
-    // Clear the OU path input initially
     const ouPathInput = document.getElementById('ouPath');
-    ouPathInput.value = '';
-
-    // Create an array to hold the OU paths for valid options
-    const validOUPaths = [];
-
-    // Populate the Google Admin classroom select box
-    CLASSROOM_SETTINGS.forEach((setting, index) => {
-      const classroomValue = setting['Classroom'];
-      const teacherValue = setting['Teacher'];
-
-      if (classroomValue || teacherValue) {
+    
+    // Create document fragment to batch DOM operations
+    const fragment = document.createDocumentFragment();
+    
+    // Filter and map in a single pass
+    const validSettings = syncSettings.reduce((acc, setting, index) => {
+      const { classroom, teacher, ouPath } = setting;
+      
+      if (classroom || teacher) {
         const option = document.createElement('option');
         option.value = index;
-
-        if (classroomValue && teacherValue) {
-          option.textContent = `${classroomValue} - ${teacherValue}`;
-        } else if (classroomValue) {
-          option.textContent = classroomValue;
-        } else {
-          option.textContent = teacherValue;
-        }
-
-        select.appendChild(option);
-        // Add the corresponding OU path to the validOUPaths array
-        validOUPaths.push(setting['Google OU Path']);
+        option.textContent = [classroom, teacher].filter(Boolean).join(' - ');
+        fragment.appendChild(option);
+        acc.push(ouPath);
       }
-    });
+      return acc;
+    }, []);
 
-    // Set the default selected classroom
+    // Batch DOM operations
+    select.innerHTML = '';
+    select.appendChild(fragment);
     select.selectedIndex = 0;
-
-    // Update the OU path input based on the initial selection
-    if (validOUPaths.length > 0) {
-      ouPathInput.value = validOUPaths[0];
-    }
-  }
-
-  function populateClassroomTeacher() {
-    const tableBody = document.querySelector('#classroomSettings tbody');
-    tableBody.innerHTML = '';
-
-    CLASSROOM_SETTINGS.forEach((classroom, rowIndex) => {
-      const row = document.createElement('tr');
-
-      // Create cells for each classroom property
-      const gradeCell = document.createElement('td');
-      gradeCell.textContent = classroom['Grade'];
-
-      const classroomCell = document.createElement('td');
-      const classroomInput = document.createElement('input');
-      classroomInput.className = 'table-input';
-      classroomInput.type = 'text';
-      classroomInput.id = `classroom-input-${rowIndex}`;
-      classroomInput.value = classroom['Classroom'];
-      classroomCell.appendChild(classroomInput);
-
-      const teacherCell = document.createElement('td');
-      const teacherInput = document.createElement('input');
-      teacherInput.className = 'table-input';
-      teacherInput.type = 'text';
-      teacherInput.id = `teacher-input-${rowIndex}`;
-      teacherInput.value = classroom['Teacher'];
-      teacherCell.appendChild(teacherInput);
     
-      // Append cells to the row
-      row.appendChild(gradeCell);
-      row.appendChild(classroomCell);
-      row.appendChild(teacherCell);
-
-      // Append row to the table body
-      tableBody.appendChild(row);
-    });
-
+    // Set initial OU path if available
+    ouPathInput.value = validSettings[0] || '';
   }
 
-  function populateEmergencyGroups() {
-    const tableBody = document.querySelector('#emergencyGroups tbody');
-    tableBody.innerHTML = '';
+  function loadClassroomSettings(classroomSettings) {
+    const tableRows = document.querySelectorAll('#classroomSettings tbody tr');
 
-    EMERGENCY_SETTINGS.forEach((group, rowIndex) => {
-      // Skip objects that have the 'Message' property
-      if (group.hasOwnProperty('Message')) {
-        return;
-      }
+    // Iterate over each row and populate columns 2 and 3 with data from classroomSettings
+    tableRows.forEach((row, index) => {
+      const classroomData = classroomSettings[index] || {};
+
+      // Column 2: Classroom
+      const classroomInput = row.querySelector('td:nth-child(2) input');
+      classroomInput.value = classroomData.classroom || '';
+
+      // Column 3: Teacher
+      const teacherInput = row.querySelector('td:nth-child(3) input');
+      teacherInput.value = classroomData.teacher || '';
+    });
+  }
+
+  function loadEmergencyGroupSettings(emergencyGroupSettings) {
+    const tableRows = document.querySelectorAll('#emergencyGroupSettings tbody tr');
+
+    // Iterate over each row and populate columns 2 and 3 with data from classroomSettings
+    tableRows.forEach((row, index) => {
+      const emergencyGroupData = emergencyGroupSettings[index] || {};
       
-      const row = document.createElement('tr');
+      // Column 1: Range
+      const rangeInput = row.querySelector('td:nth-child(1) input');
+      rangeInput.value = emergencyGroupData.range || '';
 
-      // Create cells for each classroom property
-      const groupRangeCell = document.createElement('td');
-      const groupRangeInput = document.createElement('input');
-      groupRangeInput.className = 'table-input';
-      groupRangeInput.type = 'text';
-      groupRangeInput.id = `groupRange-input-${rowIndex}`;
-      groupRangeInput.value = group['Group Range'];
-      groupRangeCell.appendChild(groupRangeInput);
+      // Column 2: Group
+      const groupInput = row.querySelector('td:nth-child(2) input');
+      groupInput.value = emergencyGroupData.group || '';
 
-      const groupNameCell = document.createElement('td');
-      const groupNameInput = document.createElement('input');
-      groupNameInput.className = 'table-input';
-      groupNameInput.type = 'text';
-      groupNameInput.id = `groupName-input-${rowIndex}`;
-      groupNameInput.value = group['Group Name'];
-      groupNameCell.appendChild(groupNameInput);
-
-      const colorCell = document.createElement('td');
-      const colorInput = document.createElement('input');
-      colorInput.className = 'table-input';
-      colorInput.type = 'color';
-      colorInput.id = `color-input-${rowIndex}`;
-      colorInput.value = group['Color Hex'];
-      colorCell.appendChild(colorInput);
-
-      // Append cells to the row
-      row.appendChild(groupRangeCell);
-      row.appendChild(groupNameCell);
-      row.appendChild(colorCell);
-      
-      
-      // Append row to the table body
-      tableBody.appendChild(row);
+      // Column 3: Color
+      const colorInput = row.querySelector('td:nth-child(3) input');
+      colorInput.value = emergencyGroupData.color || '#ffffff';
     });
   }
 
@@ -319,121 +254,168 @@
 
   function saveSettings() {
     if (busyFlag) {
-      showError("operationInProgress");
+      showError("Error: OPERATION_IN_PROGRESS");
       busyFlag = false;
       return;
     }
     
+    showToast("", "Saving changes...", 5000);
     busyFlag = true;
-    saveChangesButton.classList.remove('tool-bar-button-unsaved');
-
-    // Get appearance
-    const themeSetting = document.getElementById('theme').value;
-    saveTheme();
-    setColorPicker();
     
-    // Get sound effects
-    saveSound();
+    appSettings = getAppSettings();
+    userSettings = getUserSettings();
+
+    google.script.run
+      .withSuccessHandler(() => {
+        APP_SETTINGS = appSettings; // Save to global settings
+        USER_SETTINGS = userSettings; // Save to global user settings
+
+        // Update the UI
+        setTheme();
+        setColorPicker();
+        loadGoogleAdminSync(APP_SETTINGS.classroomSettings);
     
-    // Get school information
-    const schoolName = document.getElementById('schoolName').value;
-    const schoolYear = document.getElementById('schoolYear').value;
-    const domain = [[document.getElementById('domain').value]];
-    const schoolSettings = [[schoolName, schoolYear, domain]];
-
-    // Get classroom settings
-    const classroomSettings = getClassroomSettings();
-
-    // Get emergency settings
-    const emergencyMessage = [[document.getElementById('emergencyMessage').value]];
-    const emergencySettings = getEmergencySettings();
-
-    // Update the Google admin sync selects
-    populateGoogleAdminSync();
-
-    // Update the page header
-    saveFlag = true;
-    playNotificationSound("success");
-    showToast("", "Settings saved!", 5000);
-    
-    google.script.run.writeSettings(USER_SETTINGS, schoolSettings, classroomSettings, emergencyMessage, emergencySettings);
-
-    busyFlag = false;
+        saveChangesButton.classList.remove('tool-bar-button-unsaved');
+        playNotificationSound("success");
+        showToast("", "Settings saved!", 5000);
+        saveFlag = true;
+        busyFlag = false;
+      })
+      .withFailureHandler((error) => {
+        const errorString = String(error);
+        
+        if (errorString.includes("401")) {
+          sessionError();
+        } else {
+          showError("Error: SAVE_FAILURE");
+        }
+        
+        saveFlag = false;
+        busyFlag = false;
+      })
+    .writeSettings(userSettings, appSettings);
   }
 
-  function getClassroomSettings() {
-    const tableBody = document.querySelector('#classroomSettings tbody');
-    const rows = tableBody.querySelectorAll('tr');
+  function getUserSettings() {
+    const theme = document.getElementById('theme').value;
+    let customThemeType;
+    let customThemePrimaryColor;
+    let customThemeAccentColor;
+
+    if (theme === 'custom') {
+      customThemeType = document.getElementById('themeTypeSelect').value;
+      customThemePrimaryColor = document.getElementById('primaryColorPicker').value;
+      customThemeAccentColor = document.getElementById('accentColorPicker').value;
+    } else {
+      customThemeType = '';
+      customThemePrimaryColor = '';
+      customThemeAccentColor = '';
+    }
+    
+    return {
+      theme: theme,
+      customThemeType: customThemeType, 
+      customThemePrimaryColor: customThemePrimaryColor,
+      customThemeAccentColor: customThemeAccentColor,
+      alertSound: document.getElementById('alertSound').value,
+      syncSound: document.getElementById('syncSound').value,
+      successSound: document.getElementById('successSound').value,
+      silentMode: document.getElementById('silentModeSwitch').checked ? 'true' : 'false'
+    };
+  }
+
+  function getAppSettings() {
+    // Get school settings    
+    const schoolSettings = {
+      schoolYear: document.getElementById('schoolYear').value,
+      schoolName: document.getElementById('schoolName').value,
+      googleDomain: document.getElementById('domain').value,
+      emergencyMessage: document.getElementById('emergencyMessage').value,
+    };
+
+    // Retrieve classroom settings from the table
     const classroomSettings = [];
+    const classroomTableBody = document.querySelector('#classroomSettings tbody');
+    classroomTableBody.querySelectorAll('tr').forEach((row) => {
+      const grade = row.querySelector('td:nth-child(1)').textContent || '';
+      const classroom = row.querySelector('td:nth-child(2) input').value || '';
+      const teacher = row.querySelector('td:nth-child(3) input').value || '';
 
-    rows.forEach((row, rowIndex) => {
-      const classroom = row.querySelector(`#classroom-input-${rowIndex}`).value;
-      const teacher = row.querySelector(`#teacher-input-${rowIndex}`).value;
+      // Find matching ouPath from APP_SETTINGS, or use a default value
+      const matchingClassroom = APP_SETTINGS.classroomSettings.find(
+        (entry) => entry.classroom === classroom
+      );
+      const ouPath = matchingClassroom ? matchingClassroom.ouPath : '';
 
-      // Update CLASSROOM_SETTINGS
-      if (classroom || teacher) {
-        if (CLASSROOM_SETTINGS[rowIndex]) {
-          CLASSROOM_SETTINGS[rowIndex]['Classroom'] = classroom;
-          CLASSROOM_SETTINGS[rowIndex]['Teacher'] = teacher;
-        }
-
-        // Push the values as an array
-        classroomSettings.push([
-          classroom, 
-          teacher, 
-          CLASSROOM_SETTINGS[rowIndex]['Students'],
-          CLASSROOM_SETTINGS[rowIndex]['Google OU Path']
-        ]);
-      } else {
-        if (CLASSROOM_SETTINGS[rowIndex]) {
-          CLASSROOM_SETTINGS[rowIndex]['Classroom'] = '';
-          CLASSROOM_SETTINGS[rowIndex]['Teacher'] = '';
-          CLASSROOM_SETTINGS[rowIndex]['Google OU Path'] = '';
-          CLASSROOM_SETTINGS[rowIndex]['Students'] = '';
-        }
-
-        // Push the blank values as an array
-        classroomSettings.push(['', '',  '', '']);
-      }
+      classroomSettings.push({ grade, classroom, teacher, ouPath });
     });
 
-    return classroomSettings;
-  }
-
-  function getEmergencySettings() {
-    const tableBody = document.querySelector('#emergencyGroups tbody');
-    const rows = tableBody.querySelectorAll('tr');
-    const emergencySettings = [];
-
-    rows.forEach((row, rowIndex) => {
-      const groupRange = row.querySelector(`#groupRange-input-${rowIndex}`).value;
-      const groupName = row.querySelector(`#groupName-input-${rowIndex}`).value;
-      const colorHex = row.querySelector(`#color-input-${rowIndex}`).value;
-
-      // Push the values as an array
-      emergencySettings.push([groupRange, groupName, colorHex]);
+    // Get emergency group settings
+    const emergencyGroupSettings = [];
+    const emergencyGroupTableBody = document.querySelector('#emergencyGroupSettings tbody');
+    emergencyGroupTableBody.querySelectorAll('tr').forEach((row) => {
+      emergencyGroupSettings.push({
+        range: row.querySelector('td:nth-child(1) input').value || '',
+        group: row.querySelector('td:nth-child(2) input').value || '',
+        color: row.querySelector('td:nth-child(3) input').value || '#ffffff',
+      });
     });
 
-    return emergencySettings;
+    return {
+      schoolSettings,
+      classroomSettings,
+      emergencyGroupSettings,
+    };
   }
+
+  ///////////////////////
+  // UTILITY FUNCTIONS //
+  ///////////////////////
 
   function showError(errorType, callback = "") {
-    let icon = `<i class="bi bi-exclamation-triangle-fill" style="color: var(--warning-color);"></i>`;
+    const warningIcon = `<i class="bi bi-exclamation-triangle-fill" style="color: var(--warning-color); margin-right: 10px;"></i>`;
+    const errorIcon = `<i class="bi bi-x-circle-fill" style="color: var(--error-color); margin-right: 10px;"></i>`;
     let title;
     let message;
     let button1;
     let button2;
 
     switch (errorType) {
-      case "operationInProgress":
-        title = icon + "Error";
-        message = "Operation currently in progress. Please wait until the operation completes and try again.";
+      case "Error: OPERATION_IN_PROGRESS":
+        title = warningIcon + "Operation In Progress";
+        message = "Please wait until the operation completes and try again.";
+        button1 = "Close";
+        break;
+
+      case "Error: SAVE_FAILURE":
+        title = errorIcon + "Save Error";
+        message = "An unknown error occurred while saving the settings. The operation could not be completed.";
+        button1 = "Close";
+        break;
+
+      default:
+        title = errorIcon + "Error";
+        message = errorType;
         button1 = "Close";
         break;
     }
 
     playNotificationSound("alert");
     showModal(title, message, button1, button2);
+  }
+  
+  async function sessionError() {
+    const errorIcon = `<i class="bi bi-x-circle-fill" style="color: var(--error-color); margin-right: 10px;"></i>`;
+    const title = `${errorIcon}Session Expired`;
+    const message = "The current session has expired. Please sign in with Google and try again.";
+    
+    playNotificationSound("alert");
+    const buttonText = await showModal(title, message, "Cancel", "Sign in");
+       
+    if (buttonText === "Sign in") {
+      const signInUrl = "https://accounts.google.com";
+      const signInTab = window.open(signInUrl, "_blank");
+    }
   }
   
   function saveAlert() {
