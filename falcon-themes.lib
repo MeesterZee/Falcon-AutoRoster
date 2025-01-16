@@ -1,9 +1,8 @@
-<!-- FALCON THEMES LIBRARY v2.0 -->
+<!-- FALCON THEMES LIBRARY v2.2 -->
 <!--
   Usage: 
     - Themes are set automatically on DOMContentLoaded
     - setTheme(): Loads the theme from USER_SETTINGS
-    - saveTheme(): Writes the theme settings to USER_SETTINGS and sets the theme using setTheme()
 -->
 
 <!-- CSS THEMES -->
@@ -21,6 +20,12 @@
     --text-accent-color: #757575; /* Gray 600 */ 
     --warning-color: #ff9800; /* Orange 500 */
     --error-color: #f44336; /* Red 500 */
+    --green: #c8e6c9; /* Green 100 */
+    --orange: #ffe0b2; /* Orange 100 */
+    --red: #ffcdd2; /* Red 100 */
+    --blue: #bbdefb; /* Blue 100 */
+    --pink: #f8bbd0; /* Pink 100 */
+    --gray: #e0e0e0; /* Gray 300 */
   }
 
   :root.Falcon-Dark {
@@ -36,6 +41,12 @@
     --text-accent-color: #bdbdbd; /* Gray 400 */
     --warning-color: #ff9800; /* Orange 500 */
     --error-color: #f44336; /* Red 500 */
+    --green: #1b5e20; /* Green 900 */
+    --orange: #e65100; /* Orange 900 */
+    --red: #b71c1c; /* Red 900 */
+    --blue: #0d47a1; /* Blue 900 */
+    --pink: #880e4f; /* Pink 900 */
+    --gray: #616161; /* Gray 700 */
   }
 
   :root.Flamingo-Nights {
@@ -51,7 +62,12 @@
     --text-accent-color: #bdbdbd; /* Gray 400 */    
     --warning-color: #ff9800; /* Orange 500 */
     --error-color: #f44336; /* Red 500 */
-
+    --green: #1b5e20; /* Green 900 */
+    --orange: #e65100; /* Orange 900 */
+    --red: #b71c1c; /* Red 900 */
+    --blue: #0d47a1; /* Blue 900 */
+    --pink: #880e4f; /* Pink 900 */
+    --gray: #616161; /* Gray 700 */
   }
   
   :root.Purple-Lightning {
@@ -67,6 +83,12 @@
     --text-accent-color: #bdbdbd; /* Gray 400 */    
     --warning-color: #ff9800; /* Orange 500 */
     --error-color: #f44336; /* Red 500 */
+    --green: #1b5e20; /* Green 900 */
+    --orange: #e65100; /* Orange 900 */
+    --red: #b71c1c; /* Red 900 */
+    --blue: #0d47a1; /* Blue 900 */
+    --pink: #880e4f; /* Pink 900 */
+    --gray: #616161; /* Gray 700 */
   }
 
   :root.Monochrome {
@@ -82,6 +104,12 @@
     --text-accent-color: #757575; /* Gray 600 */ 
     --warning-color: #ff9800; /* Orange 500 */
     --error-color: #f44336; /* Red 500 */
+    --green: #c8e6c9; /* Green 100 */
+    --orange: #ffe0b2; /* Orange 100 */
+    --red: #ffcdd2; /* Red 100 */
+    --blue: #bbdefb; /* Blue 100 */
+    --pink: #f8bbd0; /* Pink 100 */
+    --gray: #e0e0e0; /* Gray 300 */
   }
 
   :root.Yuzu {
@@ -97,19 +125,64 @@
     --text-accent-color: #757575; /* Gray 600 */ 
     --warning-color: #ff9800; /* Orange 500 */
     --error-color: #f44336; /* Red 500 */
+    --green: #c8e6c9; /* Green 100 */
+    --orange: #ffe0b2; /* Orange 100 */
+    --red: #ffcdd2; /* Red 100 */
+    --blue: #bbdefb; /* Blue 100 */
+    --pink: #f8bbd0; /* Pink 100 */
+    --gray: #e0e0e0; /* Gray 300 */
+  }
+
+  /* Highlighted text classes */
+  .highlight-green {
+    background-color: var(--green);
+    margin: 10px 10px 0 10px;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  .highlight-orange {
+    background-color: var(--orange);
+    margin: 10px 10px 0 10px;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  .highlight-red {
+    background-color: var(--red);
+    margin: 10px 10px 0 10px;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  .highlight-gray {
+    background-color: var(--gray);
+    margin: 10px 10px 0 10px;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
+  }
+
+  .highlight-none {
+    background-color: var(--element-background-color);
+    margin: 10px 10px 0 10px;
+    padding: 5px;
+    border-radius: 10px;
+    border: 2px solid var(--element-accent-color);
   }
 </style>
 
 <!-- JAVASCRIPT FUNCTIONS -->
 <script type="text/javascript">
+  
   document.addEventListener('DOMContentLoaded', function() {
-    const theme = USER_SETTINGS.theme;
-    if (theme) {
-      setTheme(theme);
-    }
+    setTheme();
   });
 
-  function setTheme(theme) {
+  function setTheme() {
     const root = document.querySelector(':root');
 
     // Define a dictionary mapping theme names to class names
@@ -143,30 +216,126 @@
       root.style.removeProperty('--primary-color');
       root.style.removeProperty('--accent-color');
 
-      USER_SETTINGS.customThemeType = null;
-      USER_SETTINGS.customThemePrimaryColor = null;
-      USER_SETTINGS.customThemeAccentColor = null;
-
       // Add the selected theme to the root element
-      root.classList.add(themeClasses[theme]);
+      root.classList.add(themeClasses[USER_SETTINGS.theme]);
     }
   }
-  
-  function saveTheme() {
-    const theme = document.getElementById('theme').value;
-    
-    if (theme === 'custom') {
-      const themeType = document.getElementById('themeTypeSelect').value;
-      const primaryColor = document.getElementById('primaryColorPicker').value;
-      const accentColor = document.getElementById('accentColorPicker').value;
 
-      // Create user property values for the custom theme
-      USER_SETTINGS.customThemeType = themeType;
-      USER_SETTINGS.customThemePrimaryColor = primaryColor;
-      USER_SETTINGS.customThemeAccentColor = accentColor;
+  // Return colors for Google Charts, color values should not have leading '#'
+  function getChartTheme() {
+    const theme = USER_SETTINGS.theme;
+    const barsLight = [
+      'c8e6c9', // Green 100
+      'ffe0b2', // Orange 100
+      'ffcdd2', // Red 100
+      'bbdefb', // Blue 100
+      'f8bbd0', // Pink 100
+      'e0e0e0', // Grey 300
+      'e1bee7', // Purple 100
+      'd1c4e9', // Deep Purple 100
+      'c5cae9', // Indigo 100
+      'b3e5fc', // Light Blue 100
+      'b2ebf2', // Cyan 100
+      'b2dfdb', // Teal 100
+      'dcedc8', // Light Green 100
+      'f0f4c3', // Lime 100
+      'fff9c4', // Yellow 100
+      'ffecb3', // Amber 100
+      'ffccbc', // Deep Orange 100
+      'd7ccc8', // Brown 100
+      'cfd8dc' // Blue Grey 100
+    ];
+    
+    const barsDark = [
+      '1b5e20', // Green 900
+      'e65100', // Orange 900
+      'b71c1c', // Red 900
+      '0d47a1', // Blue 900
+      '880e4f', // Pink 900
+      '616161', // Grey 700
+      '4a148c', // Purple 900
+      '311b92', // Deep Purple 900
+      '1a237e', // Indigo 900
+      '01579b', // Light Blue 900
+      '006064', // Cyan 900
+      '004d40', // Teal 900
+      '33691e', // Light Green 900
+      '827717', // Lime 900
+      'f57f17', // Yellow 900
+      'ff6f00', // Amber 900
+      'bf360c', // Deep Orange 900
+      '3e2723', // Brown 900
+      '263238' // Blue Grey 900
+    ];
+
+    switch (theme) {
+      case 'falconLight':
+        return {
+          backgroundColor: 'ffffff',
+          text: '000000',
+          bars: barsLight,
+          gridLines: 'e0e0e0'
+        };
+      case 'falconDark':
+        return {
+          background: '121212',
+          text: 'ffffff',
+          bars: barsDark,
+          gridLines: '424242'
+        };
+      case 'flamingoNights':
+        return {
+          background: '121212',
+          text: 'ffffff',
+          bars: barsDark,
+          gridLines: '424242'
+        };
+      case 'monochrome':
+        return {
+          background: 'ffffff',
+          text: '000000',
+          bars: barsLight,
+          gridLines: 'e0e0e0'
+        };
+      case 'purpleLightning':
+        return {
+          background: '121212',
+          text: 'ffffff',
+          bars: barsDark,
+          gridLines: '424242'
+        };
+      case 'yuzu':
+        return {
+          background: 'ffffff',
+          text: '000000',
+          bars: barsLight,
+          gridLines: 'e0e0e0'
+        };
+      case 'custom':
+        let backgroundColor;
+        let textColor;
+        let barColor;
+        let gridlinesColor;
+
+        if (USER_SETTINGS.customThemeType === 'light') {
+          backgroundColor = 'ffffff';
+          textColor = '000000';
+          barColor = barsLight;
+          gridLines = 'e0e0e0';
+        }
+        if (USER_SETTINGS.customThemeType === 'dark') {
+          backgroundColor = '121212';
+          textColor = 'ffffff';
+          barColor = barsDark;
+          gridLines = '424242';
+        }
+        return {
+          background: backgroundColor,
+          text: textColor,
+          bars: barColor,
+          gridLines: gridLinesColor
+        };
     }
-  
-    USER_SETTINGS.theme = theme;
-    setTheme(theme);
   }
+  
 </script>
