@@ -1,12 +1,13 @@
-<!-- FALCON SOUNDS LIBRARY v2.0 -->
+<!-- FALCON SOUNDS LIBRARY v2.2 -->
+
 <!--  
   Usage: 
     - playNotificationSound(notificationType): Plays sound matching the argument for notificationType (alert, email, remove, success) from USER_SETTINGS
-    - saveSound(): Writes the sound settings to USER_SETTINGS
 -->
 
 <!-- JAVASCRIPT FUNCTIONS -->
 <script type="text/javascript">
+  
   const soundLibrary = {
     // Alert    
     alert01: new Audio('https://meesterzee.github.io/FalconEDU/audio/alert_error-01.wav'),
@@ -34,24 +35,11 @@
     soundLibrary[sound].load();
   }
     
-  function saveSound() {
-    const alertSound = document.getElementById('alertSound').value;
-    const syncSound = document.getElementById('syncSound').value;
-    const successSound = document.getElementById('successSound').value;
-    const silentMode = document.getElementById('silentModeSwitch').checked;
-    
-    USER_SETTINGS.alertSound = alertSound;
-    USER_SETTINGS.syncSound = syncSound;
-    USER_SETTINGS.successSound = successSound;
-    USER_SETTINGS.silentMode = silentMode ? 'true' : 'false';
-  }
-  
   function playNotificationSound(notificationType) {
     const silentModeSetting = USER_SETTINGS.silentMode;
 
-    if (silentModeSetting === 'false') {
+    if (silentModeSetting !== 'true') {
       let sound;
-      
       switch (notificationType) {
         case "alert":
           sound = USER_SETTINGS.alertSound;
@@ -63,11 +51,10 @@
           sound = USER_SETTINGS.successSound;
           break;
       }
-
+    
       soundLibrary[sound].currentTime = 0; // Reset to start
       soundLibrary[sound].play();
-    } else {
-      return;
     }
   }
+  
 </script> 
