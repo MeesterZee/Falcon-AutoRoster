@@ -31,7 +31,7 @@
   {{NAVBAR}}
   <div class="tool-bar" id="toolbar">
     <button class="tool-bar-button" id="saveChangesButton">
-      <i class="bi bi-cloud-download"></i>Save
+      <i class="bi bi-cloud-check"></i>Save
     </button>
   </div>
 
@@ -118,12 +118,12 @@
           </tr>
         </table>
         </div>
-        <span style="color: var(--text-primary-color)">
-        <label class="switch" style="margin-left: 10px">
-          <input type="checkbox" id="silentModeSwitch">
-          <span class="slider round"></span>
-        </label>
-        Silent mode</span>
+        <div class="switch-container" style="margin-top: 10px">
+          <label class="switch">
+            <input type="checkbox" id="silentModeSwitch">
+            <span class="slider"></span>
+          </label>Silent mode
+        </div>
       </div>
     </div>
 
@@ -172,9 +172,9 @@
         <input class="column-input" type="text" id="emergencyMessage">
         <h3>Google Admin Sync</h3>
         <label class="block-label" for="classroomSelect" style="margin-top: 10px;">Select classroom:</label>
-        <select class="column-select" id="classroomSelect"></select>
+        <select class="column-select" style="margin-bottom: 10px;" id="classroomSelect"></select>
         <label class="block-label" for="ouPath">Organizational unit path:</label>
-        <input class="column-input" type="text" id="ouPath">
+        <input class="column-input" style="margin-bottom: 10px;" type="text" id="ouPath">
       </div>
     </div>
 
@@ -194,13 +194,107 @@
               </tr>
             </thead>
             <tbody>
-              <!-- Rows will be inserted here -->
+              <tr>
+                <td>TK</td>
+                <td><input type="text" class="table-input" id="classroom01"></td>
+                <td><input type="text" class="table-input" id="teacher01"></td>
+              </tr>
+              <tr>
+                <td>K</td>
+                <td><input type="text" class="table-input" id="classroom02"></td>
+                <td><input type="text" class="table-input" id="teacher02"></td>
+              </tr>
+              <tr>
+                <td>K</td>
+                <td><input type="text" class="table-input" id="classroom03"></td>
+                <td><input type="text" class="table-input" id="teacher03"></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td><input type="text" class="table-input" id="classroom04"></td>
+                <td><input type="text" class="table-input" id="teacher04"></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td><input type="text" class="table-input" id="classroom05"></td>
+                <td><input type="text" class="table-input" id="teacher05"></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><input type="text" class="table-input" id="classroom06"></td>
+                <td><input type="text" class="table-input" id="teacher06"></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><input type="text" class="table-input" id="classroom07"></td>
+                <td><input type="text" class="table-input" id="teacher07"></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><input type="text" class="table-input" id="classroom08"></td>
+                <td><input type="text" class="table-input" id="teacher08"></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><input type="text" class="table-input" id="classroom09"></td>
+                <td><input type="text" class="table-input" id="teacher09"></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><input type="text" class="table-input" id="classroom10"></td>
+                <td><input type="text" class="table-input" id="teacher10"></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><input type="text" class="table-input" id="classroom11"></td>
+                <td><input type="text" class="table-input" id="teacher11"></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><input type="text" class="table-input" id="classroom12"></td>
+                <td><input type="text" class="table-input" id="teacher12"></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td><input type="text" class="table-input" id="classroom13"></td>
+                <td><input type="text" class="table-input" id="teacher13"></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><input type="text" class="table-input" id="classroom14"></td>
+                <td><input type="text" class="table-input" id="teacher14"></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td><input type="text" class="table-input" id="classroom15"></td>
+                <td><input type="text" class="table-input" id="teacher15"></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><input type="text" class="table-input" id="classroom16"></td>
+                <td><input type="text" class="table-input" id="teacher16"></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td><input type="text" class="table-input" id="classroom17"></td>
+                <td><input type="text" class="table-input" id="teacher17"></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><input type="text" class="table-input" id="classroom18"></td>
+                <td><input type="text" class="table-input" id="teacher18"></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td><input type="text" class="table-input" id="classroom19"></td>
+                <td><input type="text" class="table-input" id="teacher19"></td>
+              </tr>
             </tbody>
           </table>
         </div>
         <h3>Emergency Group Information</h3>
         <div class="table-wrapper">
-          <table id="emergencyGroups">
+          <table id="emergencyGroupSettings">
             <thead>
               <tr>
                 <th>Range</th>
@@ -209,7 +303,46 @@
               </tr>
             </thead>
             <tbody>
-              <!-- Rows will be inserted here -->
+              <tr>
+                <td><input type="text" class="table-input" id="range01"></td>
+                <td><input type="text" class="table-input" id="group01"></td>
+                <td><input type="color" class="table-input" id="color01"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range02"></td>
+                <td><input type="text" class="table-input" id="group02"></td>
+                <td><input type="color" class="table-input" id="color02"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range03"></td>
+                <td><input type="text" class="table-input" id="group03"></td>
+                <td><input type="color" class="table-input" id="color03"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range04"></td>
+                <td><input type="text" class="table-input" id="group04"></td>
+                <td><input type="color" class="table-input" id="color04"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range05"></td>
+                <td><input type="text" class="table-input" id="group05"></td>
+                <td><input type="color" class="table-input" id="color05"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range06"></td>
+                <td><input type="text" class="table-input" id="group06"></td>
+                <td><input type="color" class="table-input" id="color06"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range07"></td>
+                <td><input type="text" class="table-input" id="group07"></td>
+                <td><input type="color" class="table-input" id="color07"></td>
+              </tr>
+              <tr>
+                <td><input type="text" class="table-input" id="range08"></td>
+                <td><input type="text" class="table-input" id="group08"></td>
+                <td><input type="color" class="table-input" id="color08"></td>
+              </tr>
             </tbody>
           </table>
         </div>
