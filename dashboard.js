@@ -2,9 +2,7 @@
   // Global variables  
   // let USER_SETTINGS; // Defined in HTML
   let SCHOOL_DATA;
-  let SCHOOL_SETTINGS;
-  let CLASSROOM_SETTINGS;
-  let EMERGENCY_SETTINGS;
+  let APP_SETTINGS;
 
   // Global flags
   let saveFlag = true; // True if all changes saved, false if unsaved changes
@@ -42,6 +40,30 @@
     }
   };
 
+  async function updateData() {
+    // Fetch data
+    const [schoolData, appSettings] = await Promise.all([
+      new Promise((resolve, reject) => {
+        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getSchoolData();
+      }),     
+      new Promise((resolve, reject) => {
+        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getAppSettings();
+      })
+    ]);
+
+    // Set global variables
+    SCHOOL_DATA = schoolData;
+    APP_SETTINGS = appSettings;
+
+    // Populate elements with data
+    await Promise.all([
+      populateSchoolRoster(),
+      populateSchoolInfoModal(),
+      populateRostersModal(),
+      populateLabelsModal()
+    ]);
+  }
+
   function setEventListeners() {
     console.log("Setting event listeners...");
 
@@ -76,17 +98,19 @@
       }
     });
 
-    console.log("Event listeners set!");
+    console.log("Complete!");
   }
 
-  // Create the school roster table
+  // Populate school roster table
   function populateSchoolRoster() {
     const table = document.querySelector('#schoolRoster');
     const tableBody = document.querySelector('#schoolRoster tbody');
     const searchInput = document.getElementById('studentSearch');
+    const searchResults = document.getElementById('searchResults');
 
     if (SCHOOL_DATA.length < 1) {
         table.style.display = 'none';
+        searchResults.innerHTML = `<b>No students found!</b>`;
         return;
     } else {
         table.style.display = '';
@@ -123,43 +147,65 @@
 
     // Append the document fragment to the table body
     tableBody.appendChild(fragment);
+
+    // Show search results    
+    const results = document.querySelectorAll('#schoolRoster tbody tr');
+    searchResults.innerHTML = `<b>Students found:</b> ${results.length}`;
+    
+    // Show header text
+    const schoolName = APP_SETTINGS.schoolSettings.schoolName;
+    const schoolYear = APP_SETTINGS.schoolSettings.schoolYear;
+    const rosterHeader = document.getElementById('rosterHeader');
+    rosterHeader.innerText = schoolName + " - School Roster - " + schoolYear;
   }
 
-  // Populate data modal
+  // Populate school info
   function populateSchoolInfoModal() {
-    console.log("Populating school info modal...");
-
-    const schoolName = document.getElementById('schoolInfoSchoolName');
-    const schoolYear = document.getElementById('schoolInfoSchoolYear');
-    const totalStudents = document.getElementById('schoolInfoTotalStudents');
-    const lastSync = document.getElementById('schoolInfoLastSync');
+    const elements = {
+      schoolName: document.getElementById('schoolInfoSchoolName'),
+      schoolYear: document.getElementById('schoolInfoSchoolYear'),
+      totalStudents: document.getElementById('schoolInfoTotalStudents'),
+      lastSync: document.getElementById('schoolInfoLastSync'),
+      tableBody: document.getElementById('schoolInfoClassData').getElementsByTagName('tbody')[0]
+    };
     
-    schoolName.textContent = SCHOOL_SETTINGS['School Name'];
-    schoolYear.textContent = SCHOOL_SETTINGS['School Year'];
-    totalStudents.textContent = SCHOOL_SETTINGS['Total Students'];
-    lastSync.textContent = SCHOOL_SETTINGS['Last Sync'];
-    
-    // Get the table body element by ID
-    const tableBody = document.getElementById('schoolInfoClassData').getElementsByTagName('tbody')[0];
+    const { schoolName, schoolYear, lastSync } = APP_SETTINGS.schoolSettings;
 
-    // Clear existing rows
-    tableBody.innerHTML = '';
+    // Update basic school information
+    elements.schoolName.textContent = schoolName;
+    elements.schoolYear.textContent = schoolYear;
+    elements.totalStudents.textContent = SCHOOL_DATA.length;
+    elements.lastSync.textContent = lastSync;
 
-    // Populate the table with the data
-    Object.values(CLASSROOM_SETTINGS).forEach(settings => {
-        const row = tableBody.insertRow();
-        const gradeCell = row.insertCell(0);
-        const classroomCell = row.insertCell(1);
-        const teacherCell = row.insertCell(2);
-        const studentsCell = row.insertCell(3);
+    // Clear existing table content
+    elements.tableBody.textContent = '';
 
-        gradeCell.textContent = settings['Grade'];
-        classroomCell.textContent = settings['Classroom'];
-        teacherCell.textContent = settings['Teacher'];
-        studentsCell.textContent = settings['Students'];
+    // Count students per classroom in a single pass
+    const studentCounts = SCHOOL_DATA.reduce((counts, student) => {
+      counts[student.Classroom] = (counts[student.Classroom] || 0) + 1;
+      return counts;
+    }, {});
+
+    // Create document fragment for batch DOM updates
+    const fragment = document.createDocumentFragment();
+
+    // Create table rows
+    Object.values(APP_SETTINGS.classroomSettings).forEach(settings => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${settings.grade}</td>
+        <td>${settings.classroom}</td>
+        <td>${settings.teacher}</td>
+        <td>${studentCounts[settings.classroom] || 0}</td>
+      `;
+      fragment.appendChild(row);
     });
+
+    // Batch update DOM
+    elements.tableBody.appendChild(fragment);
   }
 
+  // Popular rosters modal
   function populateRostersModal() {
     const classroomSelect = document.getElementById('classRosterSelect');
     const emergencySelect = document.getElementById('emergencyRosterSelect');
@@ -180,9 +226,9 @@
     allEmergencyGroupsOption.textContent = 'All emergency groups';
     emergencySelect.appendChild(allEmergencyGroupsOption);
 
-    CLASSROOM_SETTINGS.forEach(classroom => {
-      const classroomValue = classroom['Classroom'];
-      const teacherValue = classroom['Teacher'];
+    APP_SETTINGS.classroomSettings.forEach(classroom => {
+      const classroomValue = classroom.classroom;
+      const teacherValue = classroom.teacher;
        
       if (classroomValue || teacherValue) {
         const option = document.createElement('option');
@@ -200,12 +246,12 @@
       }
     });
 
-    EMERGENCY_SETTINGS.forEach(emergencyGroup => {
-      const groupName = emergencyGroup['Group Name'];
+    APP_SETTINGS.emergencyGroupSettings.forEach(emergencyGroup => {
+      const groupName = emergencyGroup.group;
       if (groupName) {
         const option = document.createElement('option');
-        option.value = emergencyGroup['Group Name'];
-        option.textContent = `${emergencyGroup['Group Name']}`;
+        option.value = emergencyGroup.group;
+        option.textContent = `${emergencyGroup.group}`;
         emergencySelect.appendChild(option);
       }
     });
@@ -224,9 +270,9 @@
     allClassroomsOption.textContent = 'All classrooms';
     select.appendChild(allClassroomsOption);
     
-    CLASSROOM_SETTINGS.forEach(classroom => {
-      const classroomValue = classroom['Classroom'];
-      const teacherValue = classroom['Teacher'];
+    APP_SETTINGS.classroomSettings.forEach(classroom => {
+      const classroomValue = classroom.classroom;
+      const teacherValue = classroom.teacher;
        
       if (classroomValue || teacherValue) {
         const option = document.createElement('option');
@@ -245,24 +291,13 @@
     });
   }
 
-  // Populate the dashboard
-  function populateDashboard() {
-    console.log("Populating dashboard...")
-    
-    const results = document.querySelectorAll('#schoolRoster tbody tr');
-    const searchResults = document.getElementById('searchResults');
-    
-    searchResults.innerHTML = `<b>Students found:</b> ${results.length}`;
-    document.getElementById('rosterHeader').innerText = SCHOOL_SETTINGS['School Name'] + " - School Roster - " + SCHOOL_SETTINGS['School Year'];
-  }
-
   ///////////////
   // SYNC DATA //
   ///////////////
 
   async function syncData() {
     if (busyFlag) {
-      showError("operationInProgress");
+      showError("Error: OPERATION_IN_PROGRESS");
       return;
     }
 
@@ -276,40 +311,30 @@
     }
 
     busyFlag = true;
-    let toastMessage;
+    showToast("", "Syncing data with Google Admin directory...", 10000);
 
-    try {
-      toastMessage = "Syncing data with Google Admin directory...";
-      showToast("", toastMessage, 10000);
+    google.script.run
+      .withSuccessHandler(() => {
+        updateData().then(() => {
+          showToast("", "Sync completed successfully!", 5000);
+          playNotificationSound("sync");
+          busyFlag = false; // Reset busyFlag here
+        });
+      })
+      .withFailureHandler((error) => {
+        const errorString = String(error);
 
-      // Sync Admin Directory
-      await new Promise((resolve, reject) => {
-        google.script.run.withSuccessHandler(function(response) {
-          if (response === "missingDomain" || response === "missingClassrooms" ||
-              response === "missingEmergencyGroups" || response === "orgUnitNotFound" || 
-              response === "syncFailure") {
-            reject(response);
-          } else {
-            resolve(response);
-          }
-        }).syncAdminDirectory();
-      });
+        if (errorString.includes("401")) {
+          sessionError();
+        } else if (errorString.includes("permission")) {
+          showError("Error: PERMISSION");
+        } else {
+          showError(error.message);
+        }
 
-      await updateData();
-
-      // Handle success case
-      toastMessage = "Sync completed successfully!";
-      playNotificationSound("sync");
-      showToast("", toastMessage, 5000);
-      console.log("Sync complete!");
-    } catch (error) {
-      // Handle error if any of the promises are rejected
-      showError(error);
-      console.error("Sync failed!");
-    } finally {
-      // Reset busy flag and update UI state
-      busyFlag = false;
-    }
+        busyFlag = false; // Reset busyFlag here as well
+      })
+      .syncAdminDirectory();
   }
 
   /////////////////
@@ -363,8 +388,8 @@
           
           if (selectedClassRoster === "allClassrooms") {
           
-            // Get classrooms in the order they appear in CLASSROOM_SETTINGS
-            const classroomsOrder = CLASSROOM_SETTINGS.map(classroom => classroom['Classroom']);
+            // Get classrooms in the order they appear in APP_SETTINGS
+            const classroomsOrder = APP_SETTINGS.classroomSettings.map(classroom => classroom.classroom);
 
             classroomsOrder.forEach(classroom => {
               const filteredData = SCHOOL_DATA.filter(student => student['Classroom'] === classroom);
@@ -373,7 +398,7 @@
                 const titleData = filteredData[0];
                 const grade = titleData['Grade'];
                 const teacher = titleData['Teacher'];
-                const titleText = `${grade} - ${classroom} - ${teacher} - ` + SCHOOL_SETTINGS['School Year'];
+                const titleText = `${grade} - ${classroom} - ${teacher} - ` + APP_SETTINGS.schoolSettings.schoolYear;
 
                 // Get emergency message if available
                 emergencyText = getEmergencyMessage();
@@ -393,7 +418,7 @@
               const grade = titleData['Grade'];
               const classroom = titleData['Classroom'];
               const teacher = titleData['Teacher'];
-              const titleText = `${grade} - ${classroom} - ${teacher} - ` + SCHOOL_SETTINGS['School Year'];
+              const titleText = `${grade} - ${classroom} - ${teacher} - ` + APP_SETTINGS.schoolSettings.schoolYear;
 
               // Get emergency message if available
               emergencyText = getEmergencyMessage();
@@ -414,17 +439,17 @@
 
           if (selectedEmergencyRoster === "allEmergencyGroups") {
             
-            // Get emergency groups in the order they appear in EMERGENCY_SETTINGS
-            const emergencyGroupsOrder = EMERGENCY_SETTINGS.map(emergencyGroup => emergencyGroup['Group Name']);
+            // Get emergency groups in the order they appear in APP_SETTINGS
+            const emergencyGroupsOrder = APP_SETTINGS.emergencyGroupSettings.map(emergencyGroup => emergencyGroup.group);
 
             emergencyGroupsOrder.forEach(emergencyGroup => {
               const filteredData = SCHOOL_DATA.filter(student => student['Emergency Group'] === emergencyGroup);
               
               if (filteredData.length > 0) {
-                const groupSetting = EMERGENCY_SETTINGS.find(group => group['Group Name'] === emergencyGroup);
-                const fillColor = groupSetting ? groupSetting['Color Hex'] : 'null';
+                const groupSetting = APP_SETTINGS.emergencyGroupSettings.find(group => group.group === emergencyGroup);
+                const fillColor = groupSetting ? groupSetting.color : 'null';
                 const titleText = {
-                  text: `${emergencyGroup} - ` + SCHOOL_SETTINGS['School Year'],
+                  text: `${emergencyGroup} - ` + APP_SETTINGS.schoolSettings.schoolYear,
                   fillColor: fillColor,
                   fontSize: 20, bold: true,
                   alignment: 'center',
@@ -447,10 +472,10 @@
 
               if (filteredData.length > 0) {
                 // Get the corresponding fill color
-                const groupSetting = EMERGENCY_SETTINGS.find(group => group['Group Name'] === selectedEmergencyRoster);
-                const fillColor = groupSetting ? groupSetting['Color Hex'] : 'null';
+                const groupSetting = APP_SETTINGS.emergencyGroupSettings.find(group => group.group === selectedEmergencyRoster);
+                const fillColor = groupSetting ? groupSetting.color : 'null';
                 const titleText = {
-                  text: `${selectedEmergencyRoster} - ` + SCHOOL_SETTINGS['School Year'],
+                  text: `${selectedEmergencyRoster} - ` + APP_SETTINGS.schoolSettings.schoolYear,
                   fillColor: fillColor,
                   fontSize: 20, bold: true,
                   alignment: 'center',
@@ -471,7 +496,7 @@
           const filteredData = SCHOOL_DATA;
 
           if (filteredData.length > 0) {
-            const titleText = SCHOOL_SETTINGS['School Name'] + " - School Roster - " + SCHOOL_SETTINGS['School Year'];
+            const titleText = APP_SETTINGS.schoolSettings.schoolName + " - School Roster - " + APP_SETTINGS.schoolSettings.schoolYear;
 
             // Get emergency message if available
             emergencyText = getEmergencyMessage();
@@ -502,6 +527,16 @@
             ...Array(14).fill({ text: '', style: 'tableCell', fillColor: fillColor })
           ];
         });
+        
+        // Add blank rows to ensure the total is 25
+        while (data.length < 25) {
+          const blankIndex = data.length + 1;
+          const blankRow = [
+            { text: blankIndex.toString(), style: 'tableCell', fillColor: null },
+            ...Array(16).fill({ text: '', style: 'tableCell', fillColor: null })
+          ];
+          data.push(blankRow);
+        }
         break;
 
       case 'emergencyGroupRoster':
@@ -534,13 +569,13 @@
   }
 
   function getEmergencyColor(groupName) {
-    const emergencyColorToggle = document.getElementById('showEmergencyColor').checked;
-    
+    const emergencyColorToggle = document.getElementById('showEmergencyColor')?.checked || false;
+
     if (emergencyColorToggle) {
-      const group = EMERGENCY_SETTINGS.find(setting => setting['Group Name'] === groupName);
-      return group['Color Hex'];
+        const group = APP_SETTINGS.emergencyGroupSettings.find(setting => setting.group === groupName);
+        return group ? group.color : null; // Return null if group not found
     }
-    return null;    
+    return null; // Return null if toggle is off
   }
   
   function getEmergencyMessage () {
@@ -548,13 +583,9 @@
     let emergencyMessage = '';
 
     if (emergencyMessageToggle) {
-      for (let i = 0; i < EMERGENCY_SETTINGS.length; i++) {
-        if ('Message' in EMERGENCY_SETTINGS[i]) {
-          emergencyMessage = EMERGENCY_SETTINGS[i]['Message'];
-          break;
-        }
-      }
+      emergencyMessage = APP_SETTINGS.schoolSettings.emergencyMessage;
     }
+
     return emergencyMessage;
   }
 
@@ -750,7 +781,6 @@
       }
       
       closeHtmlModal("exportDataModal");
-      resetModal();
     };
   }
 
@@ -758,39 +788,6 @@
   // UTILITY FUNCTIONS //
   ///////////////////////
 
-  async function updateData() {
-    // Fetch data
-    const [schoolData, schoolSettings, classroomSettings, emergencySettings] = await Promise.all([
-      new Promise((resolve, reject) => {
-        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getSchoolData();
-      }),     
-      new Promise((resolve, reject) => {
-        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getSchoolSettings();
-      }),
-      new Promise((resolve, reject) => {
-        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getClassroomSettings();
-      }),
-      new Promise((resolve, reject) => {
-        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).getEmergencySettings();
-      })
-    ]);
-
-    // Set global variables
-    SCHOOL_DATA = schoolData;
-    SCHOOL_SETTINGS = schoolSettings;
-    CLASSROOM_SETTINGS = classroomSettings;
-    EMERGENCY_SETTINGS = emergencySettings;
-
-    // Populate elements with data
-    await Promise.all([
-      populateSchoolRoster(),
-      populateSchoolInfoModal(),
-      populateRostersModal(),
-      populateLabelsModal(),
-      populateDashboard(),
-    ]);
-  }
-  
   function filterSchoolRoster() {
     const query = document.getElementById('studentSearch').value.toLowerCase();
     const table = document.getElementById('schoolRoster');
@@ -856,11 +853,6 @@
     const modalSwitches = document.querySelectorAll('input');
     const modalSelects = document.querySelectorAll ('#exportRostersModal select, #exportLabelsModal select, #exportDataModal select');
 
-    // Reset switches
-    modalSwitches.forEach(function(input) {
-      input.checked = false;
-    });
-
     // Reset select boxes
     modalSelects.forEach(function(select) {
       select.selectedIndex = 0; // Reset to the first option
@@ -879,6 +871,11 @@
     if (modalContent) {
       modalContent.scrollTop = 0;
     }
+
+    // Reset switches
+    modalSwitches.forEach(function(input) {
+      input.checked = false;
+    });
   }
 
   function showLabelFormat() {
@@ -946,43 +943,63 @@
     let button2;
 
     switch (errorType) {
-      case "operationInProgress":
+      case "Error: OPERATION_IN_PROGRESS":
         title = warningIcon + "Operation In Progress";
         message = "Please wait until the operation completes and try again.";
         button1 = "Close";
         break;
 
-      case "missingDomain":
+      case "Error: MISSING_DOMAIN":
         title = errorIcon + "Missing Google Domain";
         message = "Please enter a Google domain for the school and try again.";
         button1 = "Close";
         break;
 
-      case "missingClassrooms":
+      case "Error: MISSING_CLASSROOMS":
         title = errorIcon + "Missing Classrooms";
         message = "No classrooms found. Please review the classrooms/organizational unit paths and try again.";
         button1 = "Close";
         break;
 
-      case "missingEmergencyGroups":
+      case "Error: MISSING_EMERGENCY_GROUPS":
         title = errorIcon + "Missing Emergency Groups";
         message = "No emergency groups found. Please review the emergency groups and try again.";
         button1 = "Close";
         break;
 
-      case "orgUnitNotFound":
-        title = errorIcon + "Organization Unit Not Found";
-        message = "One or more organization units could not be found in the domain. Please review the domain/organizational unit paths and try again.";
-        button1 = "Close";
-        break;
-
-      case "syncFailure":
+      case "Error: SYNC_FAILURE":
         title = errorIcon + "Sync Error";
         message = "One or more organizational units failed to sync. Please review the domain/organizational unit paths and try again.";
         button1 = "Close";
         break;
+
+      case "Error: PERMISSION":
+        title = errorIcon + "Permission Error";
+        message = "You do not have permission to modify the database. Please contact your administrator. The operation could not be completed.";
+        button1 = "Close";
+        break;
+      
+      default:
+        title = errorIcon + "Error";
+        message = errorType;
+        button1 = "Close";
+        break; 
     }
     playNotificationSound("alert");
     showModal(title, message, button1, button2);
+  }
+
+  async function sessionError() {
+    const errorIcon = `<i class="bi bi-x-circle-fill" style="color: var(--error-color); margin-right: 10px;"></i>`;
+    const title = `${errorIcon}Session Expired`;
+    const message = "The current session has expired. Please sign in with Google and try again.";
+    
+    playNotificationSound("alert");
+    const buttonText = await showModal(title, message, "Cancel", "Sign in");
+       
+    if (buttonText === "Sign in") {
+      const signInUrl = "https://accounts.google.com";
+      const signInTab = window.open(signInUrl, "_blank");
+    }
   }
 </script>
