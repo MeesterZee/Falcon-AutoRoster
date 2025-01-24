@@ -101,7 +101,6 @@
     console.log("Complete!");
   }
 
-  // Populate school roster table
   function populateSchoolRoster() {
     const table = document.querySelector('#schoolRoster');
     const tableBody = document.querySelector('#schoolRoster tbody');
@@ -109,11 +108,11 @@
     const searchResults = document.getElementById('searchResults');
 
     if (SCHOOL_DATA.length < 1) {
-        table.style.display = 'none';
-        searchResults.innerHTML = `<b>No students found!</b>`;
-        return;
+      table.style.display = 'none';
+      searchResults.innerHTML = `<b>No students found!</b>`;
+      return;
     } else {
-        table.style.display = '';
+      table.style.display = '';
     }
 
     // Clear existing rows and search query
@@ -123,40 +122,76 @@
     // Create a document fragment to improve performance
     const fragment = document.createDocumentFragment();
 
-    SCHOOL_DATA.forEach(student => {
-        const row = document.createElement('tr');
+    SCHOOL_DATA.forEach((student) => {
+      const row = document.createElement('tr');
 
-        // Helper function to create and append cells
-        const createAndAppendCell = (textContent) => {
-            const cell = document.createElement('td');
-            cell.textContent = textContent;
-            row.appendChild(cell);
-        };
+      // Helper function to create and append cells
+      const createAndAppendCell = (textContent, bgColor = 'transparent', isEmergencyGroup = false) => {
+        const cell = document.createElement('td');
+        
+        if (isEmergencyGroup) {
+          // Create the inner div with padding and background color for the emergency group
+          const colorDiv = document.createElement('div');
+          colorDiv.style.backgroundColor = bgColor;
+          colorDiv.style.borderRadius = '5px'; // Optional: rounds the corners of the background
+          colorDiv.style.paddingLeft = '4px'; // Adds padding to the left for spacing
+          colorDiv.textContent = textContent; // Copy the text content inside the div
 
-        // Create cells for each student property
-        createAndAppendCell(student['Last Name']);
-        createAndAppendCell(student['First Name']);
-        createAndAppendCell(student['Grade']);
-        createAndAppendCell(student['Classroom']);
-        createAndAppendCell(student['Teacher']);
-        createAndAppendCell(student['Emergency Group']);
+          // Adjust text color based on background color
+          if (bgColor === '#ffffff') {
+            colorDiv.style.color = 'black'; // White background -> black text
+          } else if (bgColor === '#000000') {
+            colorDiv.style.color = 'white'; // Black background -> white text
+          }
 
-        // Append row to the document fragment
-        fragment.appendChild(row);
+          // Clear the cell's text content and append the color div
+          cell.textContent = ''; // Clear the original text
+          cell.appendChild(colorDiv);
+        } else {
+          // For other columns, just set the text content normally
+          cell.textContent = textContent;
+        }
+
+        row.appendChild(cell);
+      };
+
+      // Create cells for each student property
+      createAndAppendCell(student['Last Name']);
+      createAndAppendCell(student['First Name']);
+      createAndAppendCell(student['Grade']);
+      createAndAppendCell(student['Classroom']);
+      createAndAppendCell(student['Teacher']);
+
+      // For Emergency Group, apply the background color using getColor
+      const groupColor = getColor(student['Emergency Group']);
+      createAndAppendCell(student['Emergency Group'], groupColor, true);
+
+      // Append row to the document fragment
+      fragment.appendChild(row);
     });
 
     // Append the document fragment to the table body
     tableBody.appendChild(fragment);
 
-    // Show search results    
+    // Show search results
     const results = document.querySelectorAll('#schoolRoster tbody tr');
     searchResults.innerHTML = `<b>Students found:</b> ${results.length}`;
-    
+
     // Show header text
     const schoolName = APP_SETTINGS.schoolSettings.schoolName;
     const schoolYear = APP_SETTINGS.schoolSettings.schoolYear;
     const rosterHeader = document.getElementById('rosterHeader');
-    rosterHeader.innerText = schoolName + " - School Roster - " + schoolYear;
+    rosterHeader.innerText = `${schoolName} - School Roster - ${schoolYear}`;
+  }
+
+
+  function getColor(group) {
+    // Find the matching group in emergencyGroupSettings
+    const match = APP_SETTINGS.emergencyGroupSettings.find(
+      (setting) => setting.group === group
+    );
+    // Return the color if there's a match; otherwise, return null
+    return match ? match.color : null;
   }
 
   // Populate school info
