@@ -849,38 +849,39 @@
 
     // Function to filter the table rows based on current checkboxes state and search query
     rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        let match = false;
+      row.classList.remove('last-visible-row');
+      const cells = row.querySelectorAll('td');
+      let match = false;
 
-        cells.forEach((cell, columnIndex) => {
-            // Check if the cell content matches the query and is in the selected columns
-            if (searchColumns.includes(columnIndex) && cell.textContent.toLowerCase().includes(query)) {
-                match = true;
-            }
-        });
-
-        if (match) {
-            row.style.display = '';
-            matchesFound++;
-        } else {
-            row.style.display = 'none';
+      cells.forEach((cell, columnIndex) => {
+        // Check if the cell content matches the query and is in the selected columns
+        if (searchColumns.includes(columnIndex) && cell.textContent.toLowerCase().includes(query)) {
+          match = true;
         }
+      });
+
+      if (match) {
+        row.style.display = '';
+        matchesFound++;
+      } else {
+        row.style.display = 'none';
+      }
     });
 
     // Update search results message based on matches found
     if (matchesFound === 0) {
-        table.style.display = 'none';
-        searchResults.innerHTML = '<b>No students found!</b>';
+      table.style.display = 'none';
+      searchResults.innerHTML = '<b>No students found!</b>';
     } else {
-        table.style.display = 'table';
-        searchResults.innerHTML = `<b>Students found:</b> ${matchesFound}`;
+      table.style.display = 'table';
+      searchResults.innerHTML = `<b>Students found:</b> ${matchesFound}`;
 
-        // Add the class to the last visible row
-        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+      // Add the class to the last visible row
+      const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
         
-        if (visibleRows.length > 0) {
-          visibleRows[visibleRows.length - 1].classList.add('last-visible-row');
-        }
+      if (visibleRows.length > 0) {
+        visibleRows[visibleRows.length - 1].classList.add('last-visible-row');
+      }
     }
   }
 
