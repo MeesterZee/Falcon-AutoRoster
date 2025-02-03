@@ -1,4 +1,4 @@
-<!-- FALCON UI LIBRARY v2.1 -->
+<!-- FALCON UI LIBRARY v2.2 -->
 <!--
   Usage: 
     Toast:
@@ -828,55 +828,100 @@
   /* TABLE CLASS */
   /***************/
 
+  /* Table formatting */
   .table-wrapper {
-    margin: 0 10px;
-    border-radius: 10px;
-    flex: 1; /* Allow it to take remaining space */
-    overflow-y: auto; /* Make only the table wrapper scrollable */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-right: 10px;
+    padding-left: 10px;
+    margin-top: 5px;
   }
 
   table {
     width: 100%;
     margin-top: 0px;
-    border-spacing: 0;
-    border-radius: 10px;
-    border: 1px solid var(--element-accent-color);
-    background-color: var(--element-background-color);
+    background-color: var(--page-accent-color);
     table-layout: fixed;
+    border-spacing: 0;
+    border-collapse: separate;
   }
 
-  th {
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 2; /* Ensures headers stay above the table */
+  }
+
+  thead::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--page-accent-color);
+    z-index: -1; /* Places it behind the headers */
+  }
+
+  th, td {
+    border-bottom: 2px solid var(--element-accent-color);
+    border-right: 2px solid var(--element-accent-color);
     font-size: 16px;
     padding: 5px;
-    box-sizing: border-box;
-    cursor: default;
-    border: 1px solid var(--element-accent-color);
-    text-align: left;
-  }
-  
-  td {
-    font-size: 16px;
-    padding: 5px;
-    border: 1px solid var(--element-accent-color);
     text-align: left;
     box-sizing: border-box;
+    background: var(--element-background-color);
     cursor: default;
   }
 
-  .table-content {
-    padding-left: 4px;
-    border-radius: 5px;
+  table tr td:first-child, 
+  table tr th:first-child {
+    border-left: 2px solid var(--element-accent-color);
   }
 
-  .td2 {
-    width: 50%;
-    padding: 5px;
-    box-sizing: border-box;
-    cursor: default;
-    border: 1px solid var(--element-accent-color);
-    text-align: left;
+  table tr th {
+    border-top: 2px solid var(--element-accent-color);
   }
 
+  table tr:first-child th:first-child {
+    border-top-left-radius: 10px;
+  }
+
+  table tr:first-child th:last-child {
+    border-top-right-radius: 10px;
+  }
+
+  table tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+  }
+
+  table tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+  }
+
+  .no-header-table tr:first-child td {
+    border-top: 2px solid var(--element-accent-color);
+  }
+
+  .no-header-table tr:first-child td:first-child {
+    border-top-left-radius: 10px;
+  }
+
+  .no-header-table tr:first-child td:last-child {
+    border-top-right-radius: 10px;
+  }
+
+  /* Used for table filtering */
+  .last-visible-row td:first-child {
+    border-bottom-left-radius: 10px;
+  }
+
+  .last-visible-row td:last-child {
+    border-bottom-right-radius: 10px;
+  }
+
+  /* Table inputs */
   .table-select {
     width: 100%;
     box-sizing: border-box;
@@ -910,12 +955,6 @@
     height: 20px;
   }
 
-  /* Webkit specific pseudo-class to style the text inside the date/time input box */
-  input::-webkit-date-and-time-value {
-    text-align: left;
-    padding-left: 3px;
-  }
-
   .table-input[type=color] {
     width: 100%;
     box-sizing: border-box;
@@ -926,41 +965,19 @@
     height: 20px;
   }
 
-  input[type="color"]::-webkit-color-swatch {
-    border: 1px solid var(--element-accent-color)
+  /* Webkit specific pseudo-class to style the text inside the date/time input box */
+  input::-webkit-date-and-time-value {
+    text-align: left;
+    padding-left: 3px;
   }
 
   /* Align the time input icon to fix misalignment */
   .table-input[type="time"]::-webkit-calendar-picker-indicator {
     margin-right: -1px;
   }
-  
-  /* Round corners for first and last rows */
-  table tr:first-child th:first-child, 
-  table tr:first-child .td2:first-child {
-    border-top-left-radius: 9px;
-  }
 
-  table tr:first-child th:last-child,
-  table tr:first-child .td2:last-child {
-    border-top-right-radius: 9px;
-  }
-
-  table tr:last-child td:first-child {
-    border-bottom-left-radius: 9px;
-  }
-
-  table tr:last-child td:last-child {
-    border-bottom-right-radius: 9px;
-  }
-
-  /* Add these new styles for the last visible row */
-  .last-visible-row td:first-child {
-      border-bottom-left-radius: 9px;
-  }
-
-  .last-visible-row td:last-child {
-      border-bottom-right-radius: 9px;
+  input[type="color"]::-webkit-color-swatch {
+    border: 1px solid var(--element-accent-color)
   }
 
   /****************/
