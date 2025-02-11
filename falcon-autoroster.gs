@@ -1,4 +1,4 @@
-/** Falcon AutoRoster - Web App v6.3 **/
+/** Falcon AutoRoster - Web App v6.4 **/
 /** Falcon EDU © 2023-2025 All Rights Reserved **/
 /** Created by: Nick Zagorin **/
 
@@ -67,7 +67,7 @@ function getNavbar(activePage) {
 
       function showAbout() {
         const title = "<i class='bi bi-info-circle'></i>About Falcon AutoRoster";
-        const message = "Web App Version: 6.3<br>Build: 26.020325 <br><br>Created by: Nick Zagorin<br>© 2023-2025 - All rights reserved";
+        const message = "Web App Version: 6.4<br>Build: 28.021125 <br><br>Created by: Nick Zagorin<br>© 2023-2025 - All rights reserved";
         showModal(title, message, "Close");
       }
     </script>
@@ -113,12 +113,14 @@ function getSchoolData() {
   const data = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getDisplayValues();
   
   // Map the data to objects using array methods
-  return data.map(row => {
+  const studentData = data.map(row => {
     return headers.reduce((obj, header, index) => {
       obj[header] = row[index];
       return obj;
     }, {});
   });
+
+  return studentData;
 }
 
 /** Get user settings from user properties service **/
