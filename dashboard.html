@@ -35,21 +35,11 @@
 
   {{NAVBAR}}
   <div class="tool-bar" id="toolbar">
-    <button class="tool-bar-button" id="syncButton">
-      <i class="bi bi-arrow-repeat"></i>Sync
-    </button>
-    <button class="tool-bar-button" id="schoolInfoButton">
-      <i class="bi bi-info-circle"></i>School
-    </button>
-    <button class="tool-bar-button" id="rostersButton">
-      <i class="bi bi-card-list"></i>Rosters
-    </button>
-    <button class="tool-bar-button" id="labelsButton">
-      <i class="bi bi-tag"></i>Labels
-    </button>
-    <button class="tool-bar-button" id="exportDataButton">
-      <i class="bi bi-box-arrow-up"></i>Export
-    </button>
+    <button class="tool-bar-button" id="syncButton"><i class="bi bi-arrow-repeat"></i>Sync</button>
+    <button class="tool-bar-button" id="schoolInfoButton"><i class="bi bi-info-circle"></i>School</button>
+    <button class="tool-bar-button" id="rostersButton"><i class="bi bi-card-list"></i>Rosters</button>
+    <button class="tool-bar-button" id="labelsButton"><i class="bi bi-tag"></i>Labels</button>
+    <button class="tool-bar-button" id="exportDataButton"><i class="bi bi-box-arrow-up"></i>Export</button>
   </div>
 
   <div id="toast-container"></div>
@@ -67,7 +57,7 @@
           <input type="text" id="studentSearch" placeholder="Search...">
         </div>
         <div class="search-filter-container">
-          <div style="margin-left: 10px;">Filter search:
+          <div>
             <label class="switch" for="filterLastName" style="margin-left: 10px">
               <input type="checkbox" class="search-filter" id="filterLastName" data-column="0">
               <span class="slider"></span>
@@ -104,7 +94,7 @@
                   <th>Grade</th>
                   <th>Classroom</th>
                   <th>Teacher</th>
-                  <th>Emergency Group</th>
+                  <th>Emergeny Group</th>
                 </tr>
               </thead>
               <tbody>
