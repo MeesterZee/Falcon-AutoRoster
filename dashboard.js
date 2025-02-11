@@ -5,7 +5,6 @@
   let APP_SETTINGS;
 
   // Global flags
-  let saveFlag = true; // True if all changes saved, false if unsaved changes
   let busyFlag = false; // True if backup in progress, false if backup not in progress
 
   // Initialize application
@@ -90,14 +89,6 @@
     const labelFormat = document.getElementById('labelFormatSelect');
     labelFormat.addEventListener('change', showLabelFormat);
 
-    // Check for unsaved changes or busy state before closing the window
-    window.addEventListener('beforeunload', function (e) {
-      if (!saveFlag || busyFlag) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
-
     console.log("Complete!");
   }
 
@@ -108,11 +99,11 @@
     const searchResults = document.getElementById('searchResults');
 
     if (SCHOOL_DATA.length < 1) {
-      table.style.display = 'none';
-      searchResults.innerHTML = `<b>No students found!</b>`;
-      return;
+        table.style.display = 'none';
+        searchResults.innerHTML = `<b>No students found!</b>`;
+        return;
     } else {
-      table.style.display = '';
+        table.style.display = '';
     }
 
     // Clear existing rows and search query
@@ -122,52 +113,49 @@
     // Create a document fragment to improve performance
     const fragment = document.createDocumentFragment();
 
-    SCHOOL_DATA.forEach((student) => {
-      const row = document.createElement('tr');
+    SCHOOL_DATA.forEach((student, rowIndex) => {
+        const row = document.createElement('tr');
 
-      // Helper function to create and append cells
-      const createAndAppendCell = (textContent, bgColor = 'transparent', isEmergencyGroup = false) => {
-        const cell = document.createElement('td');
-        
-        if (isEmergencyGroup) {
-          // Create the inner div with padding and background color for the emergency group
-          const colorDiv = document.createElement('div');
-          colorDiv.style.backgroundColor = bgColor;
-          colorDiv.style.borderRadius = '5px'; // Optional: rounds the corners of the background
-          colorDiv.style.paddingLeft = '4px'; // Adds padding to the left for spacing
-          colorDiv.textContent = textContent; // Copy the text content inside the div
+        // Helper function to create and append normal text cells
+        const createAndAppendCell = (textContent, bgColor = 'transparent', isEmergencyGroup = false) => {
+            const cell = document.createElement('td');
 
-          // Adjust text color based on background color
-          if (bgColor === '#ffffff') {
-            colorDiv.style.color = 'black'; // White background -> black text
-          } else if (bgColor === '#000000') {
-            colorDiv.style.color = 'white'; // Black background -> white text
-          }
+            if (isEmergencyGroup) {
+                // Create the inner div with padding and background color for emergency group
+                const colorDiv = document.createElement('div');
+                colorDiv.style.backgroundColor = bgColor;
+                colorDiv.style.borderRadius = '5px';
+                colorDiv.style.paddingLeft = '4px';
+                colorDiv.textContent = textContent;
 
-          // Clear the cell's text content and append the color div
-          cell.textContent = ''; // Clear the original text
-          cell.appendChild(colorDiv);
-        } else {
-          // For other columns, just set the text content normally
-          cell.textContent = textContent;
-        }
+                // Adjust text color based on background color
+                if (bgColor === '#ffffff') {
+                    colorDiv.style.color = 'black';
+                } else if (bgColor === '#000000') {
+                    colorDiv.style.color = 'white';
+                }
 
-        row.appendChild(cell);
-      };
+                cell.appendChild(colorDiv);
+            } else {
+                cell.textContent = textContent;
+            }
 
-      // Create cells for each student property
-      createAndAppendCell(student['Last Name']);
-      createAndAppendCell(student['First Name']);
-      createAndAppendCell(student['Grade']);
-      createAndAppendCell(student['Classroom']);
-      createAndAppendCell(student['Teacher']);
+            row.appendChild(cell);
+        };
 
-      // For Emergency Group, apply the background color using getColor
-      const groupColor = getColor(student['Emergency Group']);
-      createAndAppendCell(student['Emergency Group'], groupColor, true);
+        // Create cells for each student property
+        createAndAppendCell(student['Last Name']);
+        createAndAppendCell(student['First Name']);
+        createAndAppendCell(student['Grade']);
+        createAndAppendCell(student['Classroom']);
+        createAndAppendCell(student['Teacher']);
 
-      // Append row to the document fragment
-      fragment.appendChild(row);
+        // For Emergency Group, apply the background color using getColor
+        const groupColor = getColor(student['Emergency Group']);
+        createAndAppendCell(student['Emergency Group'], groupColor, true);
+
+        // Append row to the document fragment
+        fragment.appendChild(row);
     });
 
     // Append the document fragment to the table body
@@ -183,7 +171,6 @@
     const rosterHeader = document.getElementById('rosterHeader');
     rosterHeader.innerText = `${schoolName} - School Roster - ${schoolYear}`;
   }
-
 
   function getColor(group) {
     // Find the matching group in emergencyGroupSettings
@@ -378,7 +365,7 @@
 
   function schoolInfo() {
     if (busyFlag) {
-      showError("operationInProgress");
+      showError("Error: OPERATION_IN_PROGRESS");
       return;
     }
 
@@ -391,7 +378,7 @@
 
   function exportRosters() {
     if (busyFlag) {
-      showError("operationInProgress");
+      showError("Error: OPERATION_IN_PROGRESS");
       return;
     }
 
@@ -630,7 +617,7 @@
 
   function exportLabels() {
     if (busyFlag) {
-      showError("operationInProgress");
+      showError("Error: OPERATION_IN_PROGRESS");
       return;
     }
 
@@ -773,10 +760,10 @@
 
   function exportData() {
     if (busyFlag) {
-      showError("operationInProgress");
+      showError("Error: OPERATION_IN_PROGRESS");
       return;
     }
-    
+
     showHtmlModal("exportDataModal");
     const exportDataModalButton = document.getElementById('exportDataModalButton');
     
@@ -830,7 +817,7 @@
     const searchResults = document.getElementById('searchResults');
     let matchesFound = 0;
 
-    // Get the current state of checkboxes to determine search columns
+    // Get selected search columns
     const checkboxes = document.querySelectorAll('.search-filter');
     const searchColumns = [];
 
@@ -840,53 +827,55 @@
         }
     });
 
-    // If no checkboxes are checked, search all columns (include all indices)
+    // If no checkboxes are checked, search all columns
     if (searchColumns.length === 0) {
         for (let i = 0; i < checkboxes.length; i++) {
             searchColumns.push(i);
         }
     }
 
-    // Function to filter the table rows based on current checkboxes state and search query
+    // Filter table rows
     rows.forEach(row => {
-      row.classList.remove('last-visible-row');
-      const cells = row.querySelectorAll('td');
-      let match = false;
+        row.classList.remove('last-visible-row');
+        const cells = row.querySelectorAll('td');
+        let match = false;
 
-      cells.forEach((cell, columnIndex) => {
-        // Check if the cell content matches the query and is in the selected columns
-        if (searchColumns.includes(columnIndex) && cell.textContent.toLowerCase().includes(query)) {
-          match = true;
+        cells.forEach((cell, columnIndex) => {
+            if (searchColumns.includes(columnIndex)) {
+                let cellValue = cell.textContent.toLowerCase();
+
+                if (cellValue.includes(query)) {
+                    match = true;
+                }
+            }
+        });
+
+        if (match) {
+            row.style.display = '';
+            matchesFound++;
+        } else {
+            row.style.display = 'none';
         }
-      });
-
-      if (match) {
-        row.style.display = '';
-        matchesFound++;
-      } else {
-        row.style.display = 'none';
-      }
     });
 
-    // Update search results message based on matches found
+    // Update search results display
     if (matchesFound === 0) {
-      table.style.display = 'none';
-      searchResults.innerHTML = '<b>No students found!</b>';
+        table.style.display = 'none';
+        searchResults.innerHTML = '<b>No students found!</b>';
     } else {
-      table.style.display = 'table';
-      searchResults.innerHTML = `<b>Students found:</b> ${matchesFound}`;
+        table.style.display = 'table';
+        searchResults.innerHTML = `<b>Students found:</b> ${matchesFound}`;
 
-      // Add the class to the last visible row
-      const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
-        
-      if (visibleRows.length > 0) {
-        visibleRows[visibleRows.length - 1].classList.add('last-visible-row');
-      }
+        // Add the "last-visible-row" class to the last visible row
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+        if (visibleRows.length > 0) {
+            visibleRows[visibleRows.length - 1].classList.add('last-visible-row');
+        }
     }
   }
 
   function resetModal() {
-    const modalSwitches = document.querySelectorAll('input');
+    const modalSwitches = document.querySelectorAll('input:not(#filterLastName, #filterFirstName, #filterGrade, #filterClassroom, #filterTeacher, #filterEmergencyGroup)');
     const modalSelects = document.querySelectorAll ('#exportRostersModal select, #exportLabelsModal select, #exportDataModal select');
 
     // Reset select boxes
@@ -1003,6 +992,7 @@
         button1 = "Close";
         break;
 
+      // Sync errors
       case "Error: SYNC_FAILURE":
         title = errorIcon + "Sync Error";
         message = "One or more organizational units failed to sync. Please review the domain/organizational unit paths and try again.";
