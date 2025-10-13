@@ -8,7 +8,9 @@
   <title>Falcon AutoRoster</title>
 
   <!-- Google Fonts: Roboto -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+    rel="stylesheet">
 
   <!-- Bootstrap Icons v1.11.3 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -31,7 +33,6 @@
 
 <body>
   <div id="loading-indicator"></div>
-  <div id="modal-container"></div>
 
   {{NAVBAR}}
   <div class="tool-bar" id="toolbar">
@@ -44,49 +45,26 @@
 
   <div id="toast-container"></div>
 
-  <div class="column-container" id="page">
-    <div class="column">
-      <div class="column-header">
-        <h2 id="rosterHeader">
-          <!-- School Name - School Roster - School Year will be inserted here -->
-        </h2>
-      </div>
-      <div class="column-body" style="display: flex; flex-direction: column; overflow: hidden;">
-        <div class="search-container" style="margin-top: 20px; margin-bottom: 0;">
-          <i class="bi bi-search search-icon"></i>
-          <input type="text" id="studentSearch" placeholder="Search...">
+  <div class="page-container" id="page">
+
+    <div class="column-container">
+      <div class="column">
+        <div class="column-header" id="rosterHeader">
+          <!-- Header will be inserted here -->
         </div>
-        <div class="search-filter-container">
-          <div>
-            <label class="switch" for="filterLastName" style="margin-left: 10px">
-              <input type="checkbox" class="search-filter" id="filterLastName" data-column="0">
-              <span class="slider"></span>
-            </label>Last Name
-            <label class="switch" for="filterFirstName" style="margin-left: 20px">
-              <input type="checkbox" class="search-filter" id="filterFirstName" data-column="1">
-              <span class="slider"></span>
-            </label>First Name
-            <label class="switch" for="filterGrade" style="margin-left: 20px">
-              <input type="checkbox" class="search-filter" id="filterGrade" data-column="2">
-              <span class="slider"></span>
-            </label>Grade
-            <label class="switch" for="filterClassroom" style="margin-left: 20px">
-              <input type="checkbox" class="search-filter" id="filterClassroom" data-column="3">
-              <span class="slider"></span>
-            </label>Classroom
-            <label class="switch" for="filterTeacher" style="margin-left: 20px">
-              <input type="checkbox" class="search-filter" id="filterTeacher" data-column="4">
-              <span class="slider"></span>
-            </label>Teacher
-            <label class="switch" for="filterEmergencyGroup" style="margin-left: 20px">
-              <input type="checkbox" class="search-filter" id="filterEmergencyGroup" data-column="5">
-              <span class="slider"></span>
-            </label>Emergency Group
+        <div class="column-body">
+          <div class="column-toolbar" style="margin-bottom: 20px">
+            <div class="search-container" style="margin-bottom: 0; margin-right: 5px;">
+              <i class="bi bi-search search-icon"></i>
+              <input type="text" id="studentSearch" placeholder="Search...">
+            </div>
+            <div>
+              <button id="toggleFilterButton"><i class="bi-filter-circle"></i></button>
+            </div>
           </div>
-        </div>
-        <div style="margin: 10px 0 0 10px;" id="searchResults"></div>
+          <div style="margin-bottom: 10px" id="searchResults"></div>
           <div class="table-wrapper">
-            <table id="schoolRoster">
+            <table style="table-layout: fixed" id="schoolRoster">
               <thead>
                 <tr>
                   <th>Last Name</th>
@@ -94,29 +72,83 @@
                   <th>Grade</th>
                   <th>Classroom</th>
                   <th>Teacher</th>
-                  <th>Emergeny Group</th>
+                  <th>Emergency Group</th>
                 </tr>
               </thead>
               <tbody>
                 <!-- Rows will be inserted here -->
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-container" id="sidebarContainer">
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div id="sidebarTitle"></div>
+          <button class="sidebar-close-btn"><i class="bi-close bi-x-circle-fill"></i></button>
+        </div>
+        <div class="sidebar-content-container">
+
+          <!-- TOGGLE FILTER SIDEBAR -->
+          <div class="sidebar-content" id="toggleFilterSidebar">
+            <div class="switch-container">
+              <div>
+                <label class="switch" for="filterLastName">
+                  <input type="checkbox" class="search-filter" id="filterLastName" data-column="0">
+                  <span class="slider round"></span>
+                </label>Last Name
+              </div>
+              <div>
+                <label class="switch" for="filterFirstName">
+                  <input type="checkbox" class="search-filter" id="filterFirstName" data-column="1">
+                  <span class="slider"></span>
+                </label>First Name
+              </div>
+              <div>
+                <label class="switch" for="filterGrade">
+                  <input type="checkbox" class="search-filter" id="filterGrade" data-column="2">
+                  <span class="slider"></span>
+                </label>Grade
+              </div>
+              <div>
+                <label class="switch" for="filterClassroom">
+                  <input type="checkbox" class="search-filter" id="filterClassroom" data-column="3">
+                  <span class="slider"></span>
+                </label>Classroom
+              </div>
+              <div>
+                <label class="switch" for="filterTeacher">
+                  <input type="checkbox" class="search-filter" id="filterTeacher" data-column="4">
+                  <span class="slider"></span>
+                </label>Teacher
+              </div>
+              <div>
+                <label class="switch" for="filterEmergencyGroup">
+                  <input type="checkbox" class="search-filter" id="filterEmergencyGroup" data-column="5">
+                  <span class="slider"></span>
+                </label>Emergency Group
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- MODALS -->
+
   <!-- SCHOOL INFO MODAL -->
-  <div class="modal-html" id="schoolInfoModal">
-    <div class="modal-htmlcontent">
-      <div class="modal-htmlheader">
-        <h2>School Information
-          <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
-        </h2>
-      </div>
-      <div class="modal-htmlbody">
-        <h3>School Information</h3>
-        <div class="table-wrapper">
+  <dialog class="action-modal" id="schoolInfoModal">
+    <div class="action-header">School Information
+      <button class="action-close-btn"><i class="bi-close bi-x-circle-fill"></i></button>
+    </div>
+    <div class="action-container">
+      <div class="action-content">
+        <h2 class="rounded-top">School Information</h2>
+        <div class="no-header-table-wrapper">
           <table class="no-header-table" id="schoolData">
             <tr>
               <td>School name:</td>
@@ -136,9 +168,8 @@
             </tr>
           </table>
         </div>
-        <h3>Classroom Information</h3>
-        <div class="table-wrapper">
-          <table style="margin-bottom: 20px" id="schoolInfoClassData">
+        <div class="table-wrapper-fixed">
+          <table class="table-fixed" id="schoolInfoClassData">
             <thead>
               <tr>
                 <th>Grade</th>
@@ -154,117 +185,97 @@
         </div>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- EXPORT ROSTERS MODAL -->
-  <div class="modal-html" id="exportRostersModal">
-    <div class="modal-htmlcontent">
-      <div class="modal-htmlheader">
-        <h2>Export Rosters
-          <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
-        </h2>
-      </div>
-      <div class="modal-htmlbody">
-        <h3>Roster Type</h3>
-        <label class="block-label" for="rosterTypeSelect">Select roster type:</label>
+  <dialog class="action-modal" id="exportRostersModal">
+    <div class="action-header">Export Rosters
+      <button class="action-close-btn"><i class="bi-close bi-x-circle-fill"></i></button>
+    </div>
+    <div class="action-container">
+      <div class="action-content">
+        <h2 class="rounded-full">Roster Type</h2>
+        <label class="input-label" for="rosterTypeSelect"><b>Select roster type:</b></label>
         <select class="column-select" style="margin-bottom: 10px;" id="rosterTypeSelect">
           <option value="classRoster">Class roster</option>
+          <option value="emergencyClassRoster">Emergency class roster</option>
           <option value="emergencyGroupRoster">Emergency group roster</option>
+          <option value="emergencySchoolRoster">Emergency school roster</option>
           <option value="schoolRoster">School roster</option>
         </select>
         <div id="classroomSelect">
-          <label class="block-label" for="classRosterSelect">Select classroom:</label>
+          <label class="input-label" for="classRosterSelect"><b>Select classroom:</b></label>
           <select class="column-select" id="classRosterSelect">
             <!-- Classrooms will be inserted here -->
           </select>
         </div>
         <div id="emergencyGroupSelect" style="display: none">
-          <label class="block-label" for="emergencyRosterSelect">Select emergency group:</label>
-          <select class="column-select" id="emergencyRosterSelect" style="margin-bottom: 0;">
+          <label class="input-label" for="emergencyRosterSelect"><b>Select emergency group:</b></label>
+          <select class="column-select" id="emergencyRosterSelect">
             <!-- Emergency groups will be inserted here -->
           </select>
         </div>
-        <h3>Roster Formatting</h3>
-        <div class="switch-container">
-          <div>
-            <label class="switch">
-              <input type="checkbox" id="showEmergencyMessage">
-              <span class="slider round"></span>
-            </label>Show emergency message
-          </div>
-          <div>
-            <label class="switch">
-              <input type="checkbox" id="showEmergencyColor">
-              <span class="slider round"></span>
-            </label>Show emergency group colors
-          </div>  
-        </div> 
-        <div class="modal-htmlbutton">
+        <div class="action-btn" style="margin-top: 20px">
           <button id="downloadRosterModalButton">Download Roster</button>
         </div>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- EXPORT LABELS MODAL -->
-  <div class="modal-html" id="exportLabelsModal">
-    <div class="modal-htmlcontent">
-      <div class="modal-htmlheader">
-        <h2>Export Labels
-          <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
-        </h2>
-      </div>
-      <div class="modal-htmlbody">
-        <h3>Label Formatting</h3>
-        <label class="block-label" for="labelTemplateSelect">Select label template:</label>
+  <dialog class="action-modal" id="exportLabelsModal">
+    <div class="action-header">Export Labels
+      <button class="action-close-btn"><i class="bi-close bi-x-circle-fill"></i></button>
+    </div>
+    <div class="action-container">
+      <div class="action-content">
+        <h2 class="rounded-full">Label Formatting</h2>
+        <label class="input-label" for="labelTemplateSelect"><b>Select label template:</b></label>
         <select class="column-select" style="margin-bottom: 10px;" id="labelTemplateSelect">
           <option value="avery5160">Avery 5160</option>
           <option value="avery8167">Avery 8167</option>
           <option value="avery95945">Avery 95945</option>
         </select>
-        <label class="block-label" for="labelClassroomSelect">Select classroom:</label>
+        <label class="input-label" for="labelClassroomSelect"><b>Select classroom:</b></label>
         <select class="column-select" style="margin-bottom: 10px;" id="labelClassroomSelect">
           <!-- Classrooms will be inserted here -->
         </select>
-        <label class="block-label" for="labelFormatSelect">Select label text format:</label>
-        <select class="column-select" id="labelFormatSelect">
+        <label class="input-label" for="labelFormatSelect"><b>Select label text format:</b></label>
+        <select class="column-select" style="margin-bottom: 20px" id="labelFormatSelect">
           <option value="labelStudent">Student name</option>
           <option value="labelTeacher">Teacher name
           <option value="labelStudentGrade">Student name and grade</option>
           <option value="labelStudentTeacher">Student name and teacher</option>
           <option value="labelEmergency">Student name and emergency group
         </select>
-        <h3>Label Preview</h3>
+        <h2 class="rounded-full">Label Preview</h2>
         <div id="labelPreview" class="rectangle">
           <div id="labelRow1" style="font-size: 18px"><b>Student Name</b></div>
           <div id="labelRow2" style="font-size: 18px"></div>
         </div>
-        <div class="modal-htmlbutton">
+        <div class="action-btn">
           <button id="downloadLabelsModalButton">Download Labels</button>
         </div>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- EXPORT DATA MODAL -->
-    <div class="modal-html" id="exportDataModal" >
-      <div class="modal-htmlcontent">
-        <div class="modal-htmlheader">
-          <h2>Export Application Data
-            <button class="modal-htmlclose"><i class="bi-close bi-x-circle-fill"></i></button>
-          </h2>
-        </div>
-        <div class="modal-htmlbody">
-          </label>
-          <h3>File Type</h3>
-          <label class="block-label" for="fileTypeSelect">Select file type:</label>
-          <select class="column-select" id="fileTypeSelect" style="margin-bottom: 0">
+  <dialog class="action-modal" id="exportDataModal">
+    <div class="action-header">Export Data
+      <button class="action-close-btn"><i class="bi-close bi-x-circle-fill"></i></button>
+    </div>
+    <div class="action-container">
+      <div class="action-content">
+        </label>
+        <h2 class="rounded-full">File Type</h2>
+        <label class="input-label" for="fileTypeSelect"><b>Select file type:</b></label>
+        <select class="column-select" style="margin-bottom: 20px" id="fileTypeSelect">
             <option value="csv">Comma Separated Values (.csv)</option>
             <option value="xlsx">Microsoft Excel (.xlsx)</option>
           </select>
-          <div class="modal-htmlbutton">
-            <button id="exportDataModalButton">Download Data</button>
-          </div>
+        <div class="action-btn">
+          <button id="exportDataModalButton">Download Data</button>
         </div>
       </div>
     </div>
