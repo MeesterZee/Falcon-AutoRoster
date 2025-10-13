@@ -8,11 +8,13 @@
   <title>Falcon AutoRoster</title>
 
   <!-- Google Fonts: Roboto -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+    rel="stylesheet">
 
   <!-- Bootstrap Icons v1.11.3 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  
+
   <!-- Custom libraries -->
   <?!= include('falcon-ui.lib'); ?>
   <?!= include('falcon-themes.lib'); ?>
@@ -37,15 +39,14 @@
 
   <div id="toast-container"></div>
 
-  <div class="column-container" id="page">
-    <div class="column">
-      <div class="column-header">
-        <h2>User Settings</h2>
-      </div>
-      <div class="column-body">
-        <h3>Appearance</h3>
-        <label class="block-label" for="theme">Select theme:</label>
-        <select class="column-select" style="margin-bottom: 0" id="theme">
+  <div class="page-container" id="page">
+
+    <div class="column-container">
+      <div class="column">
+        <div class="column-header">User Settings</div>
+        <div class="column-body">
+          <h2 class="rounded-top">Appearance Theme</h2>
+          <select class="column-select" style="border-top-left-radius: 0; border-top-right-radius: 0;" id="theme">
           <option value="falconLight">Falcon (Light)</option>
           <option value="falconDark">Falcon (Dark)</option>
           <option value="flamingoNights">Flamingo Nights (Dark)</option>
@@ -54,97 +55,96 @@
           <option value="yuzu">Yuzu (Light)</option>
           <option value="custom">Custom...</option>
         </select>
-        <div class="table-wrapper" style="margin-top: 10px" id="customTheme">
-          <table class="no-header-table">
-            <tr>
-              <td>Theme style:</td>
-              <td>
-                <select class="table-select" id="themeTypeSelect">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </td>
-            </tr>
-            <tr>
-              <td>Primary color:</td>
-              <td>
-                <input class="table-input" type="color" id="primaryColorPicker">
-              </td>
-            </tr>
-            <tr>
-              <td>Accent color:</td>
-              <td>
-                <input class="table-input" type="color" id="accentColorPicker">
-              </td>
-            </tr>
-          </table>
-        </div>
-        <h3>Sound Effects</h3>
-        <div class="table-wrapper" id="notificationSoundSelect">
-        <table class="no-header-table">
-          <tr>
-            <td>Alert:</td>
-            <td>
-              <select class="table-select" id="alertSound">
-                <option value="alert01">Bonk</option>
-                <option value="alert02">Question</option>
-                <option value="alert03">Alarm</option>
-                <option value="alert04">Uh Oh</option>
-              </select>
+          <div class="no-header-table-wrapper" style="margin: 10px 0 0 0" id="customTheme">
+            <h2 class="rounded-top">Custom Theme</h2>
+            <table class="no-header-table">
+              <tr>
+                <td>Theme style:</td>
+                <td>
+                  <select class="table-select" id="themeTypeSelect">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
             </td>
           </tr>
           <tr>
-            <td>Sync complete:</td>
+            <td>Primary color:</td>
             <td>
-              <select class="table-select" id="syncSound">
-                <option value="sync01">Smile</option>
-                <option value="sync02">Happy</option>
-                <option value="sync03">Triad</option>
-                <option value="sync04">Fly Away</option>
-                <option value="sync05">Bubble</option>
-              </select>
+              <input class="table-input" type="color" id="primaryColorPicker">
             </td>
           </tr>
           <tr>
-            <td>Success:</td>
+            <td>Accent color:</td>
             <td>
-              <select class="table-select" id="successSound">
-                <option value="success01">Blink</option>
-                <option value="success02">Chime</option>
-                <option value="success03">Digital</option>
-                <option value="success04">Compliment</option>
-                <option value="success05">Ambient</option>
-              </select>
+              <input class="table-input" type="color" id="accentColorPicker">
             </td>
           </tr>
         </table>
-        </div>
-        <div class="switch-container" style="margin-top: 10px">
-          <label class="switch">
+      </div>
+      <h2 class="rounded-top" style="margin-top: 20px">Sound Effects</h2>
+      <div class="no-header-table-wrapper" id="notificationSoundSelect">
+      <table class="no-header-table">
+        <tr>
+          <td>Alert:</td>
+          <td>
+            <select class="table-select" id="alertSound">
+              <option value="alert01">Bonk</option>
+              <option value="alert02">Question</option>
+              <option value="alert03">Alarm</option>
+              <option value="alert04">Uh Oh</option>
+            </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Sync complete:</td>
+                <td>
+                  <select class="table-select" id="syncSound">
+              <option value="sync01">Smile</option>
+              <option value="sync02">Happy</option>
+              <option value="sync03">Triad</option>
+              <option value="sync04">Fly Away</option>
+              <option value="sync05">Bubble</option>
+            </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Success:</td>
+                <td>
+                  <select class="table-select" id="successSound">
+              <option value="success01">Blink</option>
+              <option value="success02">Chime</option>
+              <option value="success03">Digital</option>
+              <option value="success04">Compliment</option>
+              <option value="success05">Ambient</option>
+            </select>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="switch-container" style="margin-top: 0">
+            <label class="switch">
             <input type="checkbox" id="silentModeSwitch">
             <span class="slider"></span>
           </label>Silent mode
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="column">
-      <div class="column-header">
-        <h2>School Settings</h2>
-      </div>
-      <div class="column-body">
-        <h3>School Information</h3>
-        <div class="table-wrapper">
-          <table class="no-header-table">
-            <tr>
-              <td>School name:</td>
-              <td>
-                <input class="table-input" type="text" id="schoolName">
-              </td>
-            </tr>
-            <tr>
-              <td>School year:</td>
-              <td>
-                <select class="table-select" id="schoolYear">
+      <div class="column">
+        <div class="column-header">School Settings</div>
+        <div class="column-body">
+          <h2 class="rounded-top">School Information</h2>
+          <div class="no-header-table-wrapper">
+            <table class="no-header-table">
+              <tr>
+                <td>School name:</td>
+                <td>
+                  <input class="table-input" type="text" id="schoolName">
+                </td>
+              </tr>
+              <tr>
+                <td>School year:</td>
+                <td>
+                  <select class="table-select" id="schoolYear">
                 <script>
                   let min = new Date().getFullYear() - 10;
                   max = min + 20;
@@ -157,202 +157,200 @@
                   }
                 </script>
                 </select>
-              </td>
-            </tr>
-            <tr>
-              <td>Google domain:</td>
-              <td>
-                <input class="table-input" type="text" id="domain">
-              </td>
-            </tr>
-          </table>
+                </td>
+              </tr>
+              <tr>
+                <td>Google domain:</td>
+                <td>
+                  <input class="table-input" type="text" id="domain">
+                </td>
+              </tr>
+            </table>
+          </div>
+          <h2 class="rounded-full">School Emergency Message</h2>
+          <label class="block-label" for="emergencyMessage"><b>Message:</b></label>
+          <input class="column-input" type="text" style="margin-bottom: 20px" id="emergencyMessage">
+          <h2 class="rounded-full">Google Admin Sync</h2>
+          <label class="block-label" for="classroomSelect"><b>Select classroom:</b></label>
+          <select class="column-select" style="margin-bottom: 10px;" id="classroomSelect"></select>
+          <label class="block-label" for="ouPath"><b>Organizational unit path:</b></label>
+          <input class="column-input" type="text" id="ouPath">
         </div>
-        <h3>School Emergency Message</h3>
-        <label class="block-label" for="emergencyMessage">Message:</label>
-        <input class="column-input" type="text" id="emergencyMessage">
-        <h3>Google Admin Sync</h3>
-        <label class="block-label" for="classroomSelect" style="margin-top: 10px;">Select classroom:</label>
-        <select class="column-select" style="margin-bottom: 10px;" id="classroomSelect"></select>
-        <label class="block-label" for="ouPath">Organizational unit path:</label>
-        <input class="column-input" style="margin-bottom: 10px;" type="text" id="ouPath">
+      </div>
+
+      <div class="column">
+        <div class="column-header">Roster Settings</div>
+        <div class="column-body" style="display: block">
+          <h2 class="rounded-full">Classroom/Teacher Information</h2>
+          <div class="table-wrapper-fixed" style="margin-bottom: 20px">
+            <table class="table-fixed" id="classroomSettings">
+              <thead>
+                <tr>
+                  <th>Grade</th>
+                  <th>Classroom</th>
+                  <th>Teacher</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>TK</td>
+                  <td><input type="text" class="table-input" id="classroom01"></td>
+                  <td><input type="text" class="table-input" id="teacher01"></td>
+                </tr>
+                <tr>
+                  <td>K</td>
+                  <td><input type="text" class="table-input" id="classroom02"></td>
+                  <td><input type="text" class="table-input" id="teacher02"></td>
+                </tr>
+                <tr>
+                  <td>K</td>
+                  <td><input type="text" class="table-input" id="classroom03"></td>
+                  <td><input type="text" class="table-input" id="teacher03"></td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td><input type="text" class="table-input" id="classroom04"></td>
+                  <td><input type="text" class="table-input" id="teacher04"></td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td><input type="text" class="table-input" id="classroom05"></td>
+                  <td><input type="text" class="table-input" id="teacher05"></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><input type="text" class="table-input" id="classroom06"></td>
+                  <td><input type="text" class="table-input" id="teacher06"></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><input type="text" class="table-input" id="classroom07"></td>
+                  <td><input type="text" class="table-input" id="teacher07"></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><input type="text" class="table-input" id="classroom08"></td>
+                  <td><input type="text" class="table-input" id="teacher08"></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><input type="text" class="table-input" id="classroom09"></td>
+                  <td><input type="text" class="table-input" id="teacher09"></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><input type="text" class="table-input" id="classroom10"></td>
+                  <td><input type="text" class="table-input" id="teacher10"></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><input type="text" class="table-input" id="classroom11"></td>
+                  <td><input type="text" class="table-input" id="teacher11"></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><input type="text" class="table-input" id="classroom12"></td>
+                  <td><input type="text" class="table-input" id="teacher12"></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><input type="text" class="table-input" id="classroom13"></td>
+                  <td><input type="text" class="table-input" id="teacher13"></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><input type="text" class="table-input" id="classroom14"></td>
+                  <td><input type="text" class="table-input" id="teacher14"></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><input type="text" class="table-input" id="classroom15"></td>
+                  <td><input type="text" class="table-input" id="teacher15"></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><input type="text" class="table-input" id="classroom16"></td>
+                  <td><input type="text" class="table-input" id="teacher16"></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><input type="text" class="table-input" id="classroom17"></td>
+                  <td><input type="text" class="table-input" id="teacher17"></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td><input type="text" class="table-input" id="classroom18"></td>
+                  <td><input type="text" class="table-input" id="teacher18"></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td><input type="text" class="table-input" id="classroom19"></td>
+                  <td><input type="text" class="table-input" id="teacher19"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h2 class="rounded-full">Emergency Group Information</h2>
+          <div class="table-wrapper-fixed">
+            <table class="table-fixed" id="emergencyGroupSettings">
+              <thead>
+                <tr>
+                  <th>Range</th>
+                  <th>Group</th>
+                  <th>Color</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="text" class="table-input" id="range01"></td>
+                  <td><input type="text" class="table-input" id="group01"></td>
+                  <td><input type="color" class="table-input" id="color01"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range02"></td>
+                  <td><input type="text" class="table-input" id="group02"></td>
+                  <td><input type="color" class="table-input" id="color02"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range03"></td>
+                  <td><input type="text" class="table-input" id="group03"></td>
+                  <td><input type="color" class="table-input" id="color03"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range04"></td>
+                  <td><input type="text" class="table-input" id="group04"></td>
+                  <td><input type="color" class="table-input" id="color04"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range05"></td>
+                  <td><input type="text" class="table-input" id="group05"></td>
+                  <td><input type="color" class="table-input" id="color05"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range06"></td>
+                  <td><input type="text" class="table-input" id="group06"></td>
+                  <td><input type="color" class="table-input" id="color06"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range07"></td>
+                  <td><input type="text" class="table-input" id="group07"></td>
+                  <td><input type="color" class="table-input" id="color07"></td>
+                </tr>
+                <tr>
+                  <td><input type="text" class="table-input" id="range08"></td>
+                  <td><input type="text" class="table-input" id="group08"></td>
+                  <td><input type="color" class="table-input" id="color08"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="column">
-      <div class="column-header">
-        <h2>Roster Settings</h2>
-      </div>
-      <div class="column-body">
-        <h3>Classroom/Teacher Information</h3>
-        <div class="table-wrapper">
-          <table id="classroomSettings">
-            <thead>
-              <tr>
-                <th>Grade</th>
-                <th>Classroom</th>
-                <th>Teacher</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>TK</td>
-                <td><input type="text" class="table-input" id="classroom01"></td>
-                <td><input type="text" class="table-input" id="teacher01"></td>
-              </tr>
-              <tr>
-                <td>K</td>
-                <td><input type="text" class="table-input" id="classroom02"></td>
-                <td><input type="text" class="table-input" id="teacher02"></td>
-              </tr>
-              <tr>
-                <td>K</td>
-                <td><input type="text" class="table-input" id="classroom03"></td>
-                <td><input type="text" class="table-input" id="teacher03"></td>
-              </tr>
-              <tr>
-                <td>1</td>
-                <td><input type="text" class="table-input" id="classroom04"></td>
-                <td><input type="text" class="table-input" id="teacher04"></td>
-              </tr>
-              <tr>
-                <td>1</td>
-                <td><input type="text" class="table-input" id="classroom05"></td>
-                <td><input type="text" class="table-input" id="teacher05"></td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td><input type="text" class="table-input" id="classroom06"></td>
-                <td><input type="text" class="table-input" id="teacher06"></td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td><input type="text" class="table-input" id="classroom07"></td>
-                <td><input type="text" class="table-input" id="teacher07"></td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td><input type="text" class="table-input" id="classroom08"></td>
-                <td><input type="text" class="table-input" id="teacher08"></td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td><input type="text" class="table-input" id="classroom09"></td>
-                <td><input type="text" class="table-input" id="teacher09"></td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td><input type="text" class="table-input" id="classroom10"></td>
-                <td><input type="text" class="table-input" id="teacher10"></td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td><input type="text" class="table-input" id="classroom11"></td>
-                <td><input type="text" class="table-input" id="teacher11"></td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td><input type="text" class="table-input" id="classroom12"></td>
-                <td><input type="text" class="table-input" id="teacher12"></td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td><input type="text" class="table-input" id="classroom13"></td>
-                <td><input type="text" class="table-input" id="teacher13"></td>
-              </tr>
-              <tr>
-                <td>6</td>
-                <td><input type="text" class="table-input" id="classroom14"></td>
-                <td><input type="text" class="table-input" id="teacher14"></td>
-              </tr>
-              <tr>
-                <td>6</td>
-                <td><input type="text" class="table-input" id="classroom15"></td>
-                <td><input type="text" class="table-input" id="teacher15"></td>
-              </tr>
-              <tr>
-                <td>7</td>
-                <td><input type="text" class="table-input" id="classroom16"></td>
-                <td><input type="text" class="table-input" id="teacher16"></td>
-              </tr>
-              <tr>
-                <td>7</td>
-                <td><input type="text" class="table-input" id="classroom17"></td>
-                <td><input type="text" class="table-input" id="teacher17"></td>
-              </tr>
-              <tr>
-                <td>8</td>
-                <td><input type="text" class="table-input" id="classroom18"></td>
-                <td><input type="text" class="table-input" id="teacher18"></td>
-              </tr>
-              <tr>
-                <td>8</td>
-                <td><input type="text" class="table-input" id="classroom19"></td>
-                <td><input type="text" class="table-input" id="teacher19"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <h3>Emergency Group Information</h3>
-        <div class="table-wrapper">
-          <table id="emergencyGroupSettings">
-            <thead>
-              <tr>
-                <th>Range</th>
-                <th>Group</th>
-                <th>Color</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><input type="text" class="table-input" id="range01"></td>
-                <td><input type="text" class="table-input" id="group01"></td>
-                <td><input type="color" class="table-input" id="color01"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range02"></td>
-                <td><input type="text" class="table-input" id="group02"></td>
-                <td><input type="color" class="table-input" id="color02"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range03"></td>
-                <td><input type="text" class="table-input" id="group03"></td>
-                <td><input type="color" class="table-input" id="color03"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range04"></td>
-                <td><input type="text" class="table-input" id="group04"></td>
-                <td><input type="color" class="table-input" id="color04"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range05"></td>
-                <td><input type="text" class="table-input" id="group05"></td>
-                <td><input type="color" class="table-input" id="color05"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range06"></td>
-                <td><input type="text" class="table-input" id="group06"></td>
-                <td><input type="color" class="table-input" id="color06"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range07"></td>
-                <td><input type="text" class="table-input" id="group07"></td>
-                <td><input type="color" class="table-input" id="color07"></td>
-              </tr>
-              <tr>
-                <td><input type="text" class="table-input" id="range08"></td>
-                <td><input type="text" class="table-input" id="group08"></td>
-                <td><input type="color" class="table-input" id="color08"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="javascript-code">
+      <?!= include('settings.js'); ?>
     </div>
-  </div>
-
-  <div class="javascript-code">
-    <?!= include('settings.js'); ?>
-  </div>
 </body>
 
 </html>
