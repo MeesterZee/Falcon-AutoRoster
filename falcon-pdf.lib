@@ -18,8 +18,8 @@
   };
 
   const TABLE_STYLE = {
-    title: { fontSize: 20, bold: true, alignment: 'center', margin: [0, 5, 0, 5], fillColor: '#4db6ac' },
-    emergencyMessage: { fontSize: 14, bold: true, alignment: 'center', margin: [0, 5, 0, 5], color: '#f44336' },
+    title: { fontSize: 16, bold: true, alignment: 'center', margin: [0, 0, 0, 0], fillColor: '#4db6ac' },
+    emergencyMessage: { fontSize: 12, bold: true, alignment: 'center', margin: [0, 5, 0, 5], color: '#f44336' },
     tableHeader: { fontSize: 11, bold: true, alignment: 'left', fillColor: '#4db6ac' },
     tableCell: { fontSize: 11, alignment: 'left', noWrap: true }
   };
@@ -87,6 +87,95 @@
     pdfMake.createPdf(docDefinition).download(fileName);
   }
 
+  // Emergency Class Roster (additional table for adult tracking)
+  function writeEmergencyClassRoster(rosterData, fileName) {
+    const leftMargin = 0.25 * INCH_TO_POINTS;
+    const rightMargin = 0.25 * INCH_TO_POINTS;
+    const topMargin = 0.5 * INCH_TO_POINTS;
+    const bottomMargin = 0.5 * INCH_TO_POINTS;
+    const docContent = [];
+
+    rosterData.forEach((roster, index) => {
+      if (index > 0) {
+        docContent.push({ text: '', pageBreak: 'after' });
+      }
+
+      docContent.push(
+        {
+          table: {
+            dontBreakRows: true,
+            widths: [25, 100, 100, ...Array(14).fill('*')],
+            body: [
+              [
+                { text: roster.titleText, style: 'title', colSpan: 17 },
+                ...Array(16).fill('')
+              ]
+            ]
+          },
+          layout: TABLE_FORMAT
+        },
+        { text: roster.emergencyText, style: 'emergencyMessage' },
+        {
+          table: {
+            dontBreakRows: true,
+            widths: [25, 100, 100, ...Array(14).fill('*')],
+            body: [
+              [
+                { text: '#', style: 'tableHeader' },
+                { text: 'Last Name', style: 'tableHeader' },
+                { text: 'First Name', style: 'tableHeader' },
+                { text: '', style: 'tableHeader', colSpan: 14 },
+                ...Array(13).fill('') // Fill with empty strings to match the colSpan
+              ],
+              ...roster.rosterText
+            ]
+          },
+          layout: TABLE_FORMAT
+        },
+        
+        // Aides/Volunteers table
+        
+        { text: " ", style: 'emergencyMessage' },
+        {
+          table: {
+            dontBreakRows: true,
+            widths: [25, 100, 100, ...Array(14).fill('*')],
+            body: [
+              [
+                { text: 'Aides / Volunteers', style: 'title', colSpan: 17 },
+                ...Array(16).fill('')
+              ],
+              [
+                { text: '#', style: 'tableHeader' },
+                { text: 'Name', style: 'tableHeader', colSpan: 2 },
+                '', // ← Placeholder cell consumed by colSpan
+                { text: '', style: 'tableHeader', colSpan: 14 },
+                ...Array(13).fill('')
+              ],
+              ...Array.from({ length: 5 }).map((_, i) => [
+                { text: `${i + 1}`, style: 'cell' },
+                { text: '', style: 'cell', colSpan: 2 },
+                '', // ← Dummy cell for the colspan
+                ...Array(14).fill({ text: '', style: 'cell' })
+              ])
+            ]
+          },
+          layout: TABLE_FORMAT
+        }
+      );
+    });
+
+    const docDefinition = {
+      pageSize: 'LETTER',
+      pageOrientation: 'portrait',
+      pageMargins: [leftMargin, topMargin, rightMargin, bottomMargin],
+      content: docContent,
+      styles: TABLE_STYLE
+    };
+
+    pdfMake.createPdf(docDefinition).download(fileName);
+  }
+
   // Emergency Group Roster
   function writeEmergencyGroupRoster(rosterData, fileName) {
     const leftMargin = 0.25 * INCH_TO_POINTS;
@@ -94,7 +183,7 @@
     const topMargin = 0.5 * INCH_TO_POINTS;
     const bottomMargin = 0.5 * INCH_TO_POINTS;
     const columnGap = 20;
-    const maxRowsPerTable = 35; // Maximum rows per table including the header
+    const maxRowsPerTable = 36; // Maximum rows per table including the header
     const docContent = [];
 
     rosterData.forEach((roster, index) => {
@@ -188,14 +277,14 @@
     pdfMake.createPdf(docDefinition).download(fileName);
   }
 
-  // School Roster
+  // School Roster/Emergency School Roster
   function writeSchoolRoster(rosterData, fileName) {
     const leftMargin = 0.25 * INCH_TO_POINTS;
     const rightMargin = 0.25 * INCH_TO_POINTS;
     const topMargin = 0.25 * INCH_TO_POINTS;
     const bottomMargin = 0.25 * INCH_TO_POINTS;
     const columnGap = 13.5;
-    const maxRowsPerTable = 27; // Maximum rows per table including the header
+    const maxRowsPerTable = 28; // Maximum rows per table including the header
     const docContent = [];
 
     const addPageContent = (leftTableBody, centerTableBody, rightTableBody, isFirstPage = false) => {
