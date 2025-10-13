@@ -6,6 +6,7 @@
 
   // Global flags
   let busyFlag = false; // True if backup in progress, false if backup not in progress
+  let sortOrder = {};
 
   // Initialize application
   window.onload = async function() {
@@ -71,6 +72,7 @@
     document.getElementById('rostersButton').addEventListener('click', exportRosters);
     document.getElementById('labelsButton').addEventListener('click', exportLabels);
     document.getElementById('exportDataButton').addEventListener('click', exportData);
+    document.getElementById('toggleFilterButton').addEventListener('click', showToggleFilterSidebar);
     
     const searchFilters = document.querySelectorAll('.search-filter');
     searchFilters.forEach((filter, index) => {
@@ -90,6 +92,35 @@
     labelFormat.addEventListener('change', showLabelFormat);
 
     console.log("Complete!");
+
+    // Add event listener for table sorting with clickable headers
+    document.querySelectorAll("#schoolRoster thead th").forEach((header, columnIndex) => {
+      header.style.cursor = "pointer";
+
+      // Add sort icon element
+      const icon = document.createElement("i");
+      icon.classList.add("bi", "sort-icon");
+      header.appendChild(icon);
+
+      // Add sorting event listener
+      header.addEventListener("click", () => sortTable(columnIndex));
+    });
+
+    // Add event listener to prevent escaping dialogs
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        const dialog = document.querySelector('dialog[open]');
+        if (dialog) {
+          event.preventDefault(); // Prevent ESC from closing the dialog
+          
+          // Remove focus from all buttons within the dialog
+          const buttons = dialog.querySelectorAll('button');
+          buttons.forEach((button) => {
+            button.blur(); // Remove focus from button
+          });
+        }
+      }
+    });
   }
 
   function populateSchoolRoster() {
@@ -170,6 +201,8 @@
     const schoolYear = APP_SETTINGS.schoolSettings.schoolYear;
     const rosterHeader = document.getElementById('rosterHeader');
     rosterHeader.innerText = `${schoolName} - School Roster - ${schoolYear}`;
+
+    initializeSorting();
   }
 
   function getColor(group) {
@@ -326,7 +359,7 @@
     const message = "All school rosters and data will be updated. Are you sure you wish to proceed?";
     const title = `<i class="bi bi-exclamation-triangle-fill" style="color: var(--warning-color); margin-right: 10px;"></i>Sync Rosters`;
 
-    const buttonText = await showModal(title, message, "Cancel", "Proceed");
+    const buttonText = await showAlertModal(title, message, "Cancel", "Proceed");
 
     if (buttonText === "Cancel") {
       return;
@@ -369,7 +402,7 @@
       return;
     }
 
-    showHtmlModal("schoolInfoModal");
+    showActionModal("schoolInfoModal");
   }
 
   ////////////////////
@@ -382,206 +415,201 @@
       return;
     }
 
-    showHtmlModal("exportRostersModal");
-    const downloadRostersModalButton = document.getElementById('downloadRosterModalButton');
+    showActionModal("exportRostersModal");
+    const downloadBtn = document.getElementById('downloadRosterModalButton');
 
-    downloadRostersModalButton.onclick = function() {
+    downloadBtn.onclick = function () {
       busyFlag = true;
 
-      // Get roster type and selection
       const rosterType = document.getElementById('rosterTypeSelect').value;
-      const selectedClassRoster = document.getElementById('classRosterSelect').value;
-      const selectedEmergencyRoster = document.getElementById('emergencyRosterSelect').value;
+      const classValue = document.getElementById('classRosterSelect').value;
+      const emergencyValue = document.getElementById('emergencyRosterSelect').value;
 
+      const schoolYear = APP_SETTINGS.schoolSettings.schoolYear;
+      let fileName = '';
       let allRostersData = [];
-      let emergencyText;
-      let selectElement;
-      let selectedOptionText;
-      let fileName;
+
+      // Emergency message logic moved here
+      const emergencyText = [
+        'emergencyClassRoster',
+        'emergencyGroupRoster',
+        'emergencySchoolRoster'
+      ].includes(rosterType)
+        ? getEmergencyMessage().trim()
+        : " ";
+
+      const processGroup = (items, filterKey, getTitleText, writer) => {
+        items.forEach(key => {
+          const data = SCHOOL_DATA.filter(s => s[filterKey] === key);
+          if (data.length > 0) {
+            const titleText = getTitleText(data, key);
+            const rosterText = getRosters(rosterType, data);
+            allRostersData.push({ titleText, emergencyText, rosterText });
+          }
+        });
+        writer(allRostersData, fileName);
+      };
+
+      const getSelectedText = (id, allLabel, properLabel) => {
+        const select = document.getElementById(id);
+        let text = select.options[select.selectedIndex].textContent;
+        return text === allLabel ? properLabel : text;
+      };
 
       switch (rosterType) {
-        case 'classRoster':
-          selectElement = document.getElementById('classRosterSelect');
-          selectedOptionText = selectElement.options[selectElement.selectedIndex].textContent;
-          if (selectedOptionText === "All classrooms") {
-            selectedOptionText = "All Classrooms";
-          }
-          fileName = selectedOptionText + " - Class Roster.pdf";
-          
-          if (selectedClassRoster === "allClassrooms") {
-          
-            // Get classrooms in the order they appear in APP_SETTINGS
-            const classroomsOrder = APP_SETTINGS.classroomSettings.map(classroom => classroom.classroom);
+        case 'classRoster': {
+          const isAll = classValue === "allClassrooms";
+          const labelText = getSelectedText('classRosterSelect', "All classrooms", "All Classrooms");
+          fileName = `${labelText} - "Class Roster".pdf`;
 
-            classroomsOrder.forEach(classroom => {
-              const filteredData = SCHOOL_DATA.filter(student => student['Classroom'] === classroom);
-              
-              if (filteredData.length > 0) {
-                const titleData = filteredData[0];
-                const grade = titleData['Grade'];
-                const teacher = titleData['Teacher'];
-                const titleText = `${grade} - ${classroom} - ${teacher} - ` + APP_SETTINGS.schoolSettings.schoolYear;
-
-                // Get emergency message if available
-                emergencyText = getEmergencyMessage();
-
-                const rosterText = getRosters(rosterType, filteredData);
-                allRostersData.push({ titleText, emergencyText, rosterText });
-              }
-            });
-
-            // Combine all rosters data and add page breaks
-            writeClassRoster(allRostersData, fileName);
+          if (isAll) {
+            const classrooms = APP_SETTINGS.classroomSettings.map(c => c.classroom);
+            processGroup(classrooms, 'Classroom', (data, room) => {
+              const s = data[0];
+              return `${s['Grade']} - ${room} - ${s['Teacher']} - ${schoolYear}`;
+            }, writeClassRoster);
           } else {
-            const filteredData = SCHOOL_DATA.filter(student => student['Classroom'] === selectedClassRoster);
-
-            if (filteredData.length > 0) {
-              const titleData = filteredData[0];
-              const grade = titleData['Grade'];
-              const classroom = titleData['Classroom'];
-              const teacher = titleData['Teacher'];
-              const titleText = `${grade} - ${classroom} - ${teacher} - ` + APP_SETTINGS.schoolSettings.schoolYear;
-
-              // Get emergency message if available
-              emergencyText = getEmergencyMessage();
-
-              const rosterText = getRosters(rosterType, filteredData);
+            const data = SCHOOL_DATA.filter(s => s['Classroom'] === classValue);
+            if (data.length > 0) {
+              const s = data[0];
+              const titleText = `${s['Grade']} - ${s['Classroom']} - ${s['Teacher']} - ${schoolYear}`;
+              const rosterText = getRosters(rosterType, data);
               writeClassRoster([{ titleText, emergencyText, rosterText }], fileName);
             }
           }
           break;
+        }
 
-        case 'emergencyGroupRoster':
-          selectElement = document.getElementById('emergencyRosterSelect');
-          selectedOptionText = selectElement.options[selectElement.selectedIndex].textContent;
-          if (selectedOptionText === "All emergency groups") {
-            selectedOptionText = "All Emergency Groups";
-          }
-          fileName = selectedOptionText + " - Emergency Group Roster.pdf";
+        case 'emergencyClassRoster': {
+          const isAll = classValue === "allClassrooms";
+          const labelText = getSelectedText('classRosterSelect', "All classrooms", "All Classrooms");
+          fileName = `${labelText} - "Emergency Class Roster".pdf`;
 
-          if (selectedEmergencyRoster === "allEmergencyGroups") {
-            
-            // Get emergency groups in the order they appear in APP_SETTINGS
-            const emergencyGroupsOrder = APP_SETTINGS.emergencyGroupSettings.map(emergencyGroup => emergencyGroup.group);
-
-            emergencyGroupsOrder.forEach(emergencyGroup => {
-              const filteredData = SCHOOL_DATA.filter(student => student['Emergency Group'] === emergencyGroup);
-              
-              if (filteredData.length > 0) {
-                const groupSetting = APP_SETTINGS.emergencyGroupSettings.find(group => group.group === emergencyGroup);
-                const fillColor = groupSetting ? groupSetting.color : 'null';
-                const titleText = {
-                  text: `${emergencyGroup} - ` + APP_SETTINGS.schoolSettings.schoolYear,
-                  fillColor: fillColor,
-                  fontSize: 20, bold: true,
-                  alignment: 'center',
-                  margin: [0, 5, 0, 5]
-                };
-
-                // Get emergency message if available
-                emergencyText = getEmergencyMessage();
-
-                const rosterText = getRosters(rosterType, filteredData);
-                allRostersData.push({ titleText, emergencyText, rosterText });
-              }
-            });
-
-            // Combine all rosters data and add page breaks
-            writeEmergencyGroupRoster(allRostersData, fileName);
-          
+          if (isAll) {
+            const classrooms = APP_SETTINGS.classroomSettings.map(c => c.classroom);
+            processGroup(classrooms, 'Classroom', (data, room) => {
+              const s = data[0];
+              return `${s['Grade']} - ${room} - ${s['Teacher']} - ${schoolYear}`;
+            }, writeEmergencyClassRoster);
           } else {
-              const filteredData = SCHOOL_DATA.filter(student => student['Emergency Group'] === selectedEmergencyRoster);
-
-              if (filteredData.length > 0) {
-                // Get the corresponding fill color
-                const groupSetting = APP_SETTINGS.emergencyGroupSettings.find(group => group.group === selectedEmergencyRoster);
-                const fillColor = groupSetting ? groupSetting.color : 'null';
-                const titleText = {
-                  text: `${selectedEmergencyRoster} - ` + APP_SETTINGS.schoolSettings.schoolYear,
-                  fillColor: fillColor,
-                  fontSize: 20, bold: true,
-                  alignment: 'center',
-                  margin: [0, 5, 0, 5]
-                };
-                
-                // Get emergency message if available
-                emergencyText = getEmergencyMessage();
-
-                const rosterText = getRosters(rosterType, filteredData);
-                writeEmergencyGroupRoster([{ titleText, emergencyText, rosterText }], fileName);
-              }
+            const data = SCHOOL_DATA.filter(s => s['Classroom'] === classValue);
+            if (data.length > 0) {
+              const s = data[0];
+              const titleText = `${s['Grade']} - ${s['Classroom']} - ${s['Teacher']} - ${schoolYear}`;
+              const rosterText = getRosters(rosterType, data);
+              writeEmergencyClassRoster([{ titleText, emergencyText, rosterText }], fileName);
+            }
           }
           break;
+        }
+
+        case 'emergencyGroupRoster': {
+          const isAll = emergencyValue === "allEmergencyGroups";
+          const labelText = getSelectedText('emergencyRosterSelect', "All emergency groups", "All Emergency Groups");
+          fileName = `${labelText} - Emergency Group Roster.pdf`;
+
+          if (isAll) {
+            const groups = APP_SETTINGS.emergencyGroupSettings.map(g => g.group);
+            processGroup(groups, 'Emergency Group', (_, group) => {
+              const g = APP_SETTINGS.emergencyGroupSettings.find(x => x.group === group);
+              return {
+                text: `${group} - ${schoolYear}`,
+                fillColor: g?.color || 'null',
+                fontSize: 16,
+                bold: true,
+                alignment: 'center',
+                margin: [0, 0, 0, 0]
+              };
+            }, writeEmergencyGroupRoster);
+          } else {
+            const data = SCHOOL_DATA.filter(s => s['Emergency Group'] === emergencyValue);
+            if (data.length > 0) {
+              const g = APP_SETTINGS.emergencyGroupSettings.find(x => x.group === emergencyValue);
+              const titleText = {
+                text: `${emergencyValue} - ${schoolYear}`,
+                fillColor: g?.color || 'null',
+                fontSize: 16,
+                bold: true,
+                alignment: 'center',
+                margin: [0, 0, 0, 0]
+              };
+              const rosterText = getRosters(rosterType, data);
+              writeEmergencyGroupRoster([{ titleText, emergencyText, rosterText }], fileName);
+            }
+          }
+          break;
+        }
 
         case 'schoolRoster':
-          fileName = "School Roster.pdf";
-          const filteredData = SCHOOL_DATA;
-
-          if (filteredData.length > 0) {
-            const titleText = APP_SETTINGS.schoolSettings.schoolName + " - School Roster - " + APP_SETTINGS.schoolSettings.schoolYear;
-
-            // Get emergency message if available
-            emergencyText = getEmergencyMessage();
-
-            const rosterText = getRosters(rosterType, filteredData);
+        case 'emergencySchoolRoster': {
+          const data = SCHOOL_DATA;
+          if (data.length > 0) {
+            fileName = `${APP_SETTINGS.schoolSettings.schoolName} - ${rosterType === 'schoolRoster' ? "School Roster" : "Emergency School Roster"} - ${schoolYear}.pdf`;
+            const titleText = `${APP_SETTINGS.schoolSettings.schoolName} - School Roster - ${schoolYear}`;
+            const rosterText = getRosters(rosterType, data);
             writeSchoolRoster([{ titleText, emergencyText, rosterText }], fileName);
           }
           break;
+        }
       }
 
-      closeHtmlModal("exportRostersModal");
+      closeActionModal("exportRostersModal");
       busyFlag = false;
-    }
+    };
   }
 
   // Format the data for PDFMake
   function getRosters(rosterType, filteredData) {
-    let data;
+    let data = [];
+
+    const getFillColor = student =>
+      rosterType.startsWith('emergency') ? getEmergencyColor(student['Emergency Group']) : null;
 
     switch (rosterType) {
       case 'classRoster':
+      case 'emergencyClassRoster':
         data = filteredData.map((student, index) => {
-          const fillColor = getEmergencyColor(student['Emergency Group']);
+          const fillColor = getFillColor(student);
           return [
-            { text: (index + 1).toString(), style: 'tableCell', fillColor: fillColor },
-            { text: student['Last Name'], style: 'tableCell', fillColor: fillColor },
-            { text: student['First Name'], style: 'tableCell', fillColor: fillColor },
-            ...Array(14).fill({ text: '', style: 'tableCell', fillColor: fillColor })
+            { text: (index + 1).toString(), style: 'tableCell', fillColor },
+            { text: student['Last Name'], style: 'tableCell', fillColor },
+            { text: student['First Name'], style: 'tableCell', fillColor },
+            ...Array(14).fill({ text: '', style: 'tableCell', fillColor }),
           ];
         });
-        
-        // Add blank rows to ensure the total is 25
+
         while (data.length < 25) {
           const blankIndex = data.length + 1;
           const blankRow = [
             { text: blankIndex.toString(), style: 'tableCell', fillColor: null },
-            ...Array(16).fill({ text: '', style: 'tableCell', fillColor: null })
+            ...Array(16).fill({ text: '', style: 'tableCell', fillColor: null }),
           ];
           data.push(blankRow);
         }
         break;
 
       case 'emergencyGroupRoster':
-        data = filteredData.map((student, index) => {
-          const fillColor = getEmergencyColor(student['Emergency Group']);
+        data = filteredData.map(student => {
+          const fillColor = getFillColor(student);
           return [
-            { text: student['Last Name'], style: 'tableCell', fillColor: fillColor },
-            { text: student['First Name'], style: 'tableCell', fillColor: fillColor },
-            { text: student['Grade'], style: 'tableCell', fillColor: fillColor },
-            { text: student['Classroom'], style: 'tableCell', fillColor: fillColor },
-            { text: '', style: 'tableCell', fillColor: fillColor }
+            { text: student['Last Name'], style: 'tableCell', fillColor },
+            { text: student['First Name'], style: 'tableCell', fillColor },
+            { text: student['Grade'], style: 'tableCell', fillColor },
+            { text: student['Classroom'], style: 'tableCell', fillColor },
+            { text: '', style: 'tableCell', fillColor },
           ];
         });
         break;
 
       case 'schoolRoster':
-        data = filteredData.map((student, index) => {
-          const fillColor = getEmergencyColor(student['Emergency Group']);
+      case 'emergencySchoolRoster':
+        data = filteredData.map(student => {
+          const fillColor = getFillColor(student);
           return [
-            { text: student['Last Name'], style: 'tableCell', fillColor: fillColor },
-            { text: student['First Name'], style: 'tableCell', fillColor: fillColor },
-            { text: student['Grade'], style: 'tableCell', fillColor: fillColor },
-            { text: student['Classroom'], style: 'tableCell', fillColor: fillColor },
+            { text: student['Last Name'], style: 'tableCell', fillColor },
+            { text: student['First Name'], style: 'tableCell', fillColor },
+            { text: student['Grade'], style: 'tableCell', fillColor },
+            { text: student['Classroom'], style: 'tableCell', fillColor },
           ];
         });
         break;
@@ -591,24 +619,12 @@
   }
 
   function getEmergencyColor(groupName) {
-    const emergencyColorToggle = document.getElementById('showEmergencyColor')?.checked || false;
-
-    if (emergencyColorToggle) {
-        const group = APP_SETTINGS.emergencyGroupSettings.find(setting => setting.group === groupName);
-        return group ? group.color : null; // Return null if group not found
-    }
-    return null; // Return null if toggle is off
+    const group = APP_SETTINGS.emergencyGroupSettings.find(g => g.group === groupName);
+    return group?.color || null;
   }
   
-  function getEmergencyMessage () {
-    const emergencyMessageToggle = document.getElementById('showEmergencyMessage').checked;
-    let emergencyMessage = '';
-
-    if (emergencyMessageToggle) {
-      emergencyMessage = APP_SETTINGS.schoolSettings.emergencyMessage;
-    }
-
-    return emergencyMessage;
+  function getEmergencyMessage() {
+    return APP_SETTINGS.schoolSettings.emergencyMessage || '';
   }
 
   ///////////////////
@@ -621,11 +637,13 @@
       return;
     }
 
-    showHtmlModal("exportLabelsModal");
+    showActionModal("exportLabelsModal");
     const downloadLabelsModalButton = document.getElementById('downloadLabelsModalButton');
     
     downloadLabelsModalButton.onclick = function() {
       busyFlag = true;
+
+      showToast("", "Creating labels...", 5000);
       
       const selectElement = document.getElementById('labelClassroomSelect');
       const classroom = document.getElementById('labelClassroomSelect').value;
@@ -658,7 +676,8 @@
           break;
       }
 
-      closeHtmlModal("exportLabelsModal");
+      showToast("", "Labels created successfully!", 5000);
+      closeActionModal("exportLabelsModal");
       busyFlag = false;
     }
   }
@@ -764,46 +783,82 @@
       return;
     }
 
-    showHtmlModal("exportDataModal");
+    showActionModal("exportDataModal");
     const exportDataModalButton = document.getElementById('exportDataModalButton');
     
     exportDataModalButton.onclick = function() {
       busyFlag = true;
+
+      showToast("", "Exporting data...", 5000);
     
       const fileType = document.getElementById('fileTypeSelect').value;
+      const fileName = 'School Data - ' + APP_SETTINGS.schoolSettings.schoolYear;
       
       switch (fileType) {
         case 'csv':
-          google.script.run.withSuccessHandler(function(data) {
-            let a = document.createElement('a');
-            
-            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
-            a.download = 'School Data.csv';
-            a.click();
-            busyFlag = false;
-          }).getCsv();
-          break;
+          google.script.run
+            .withSuccessHandler(function(data) {
+              let a = document.createElement('a');
+              
+              a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
+              a.download = fileName + '.csv';
+              a.click();
+              busyFlag = false;
+              playNotificationSound("success");
+              showToast("", "Data exported successfully!", 5000);
+            })
+            .withFailureHandler((error) => {
+              const errorString = String(error);
+        
+              if (errorString.includes("401")) {
+                sessionError();
+              } else {
+                showError(error.message);
+              }
+              busyFlag = false;
+            })
+          .getCsv();
+        break;
+        
         case 'xlsx':
-          google.script.run.withSuccessHandler(function(data) {
-            // Convert the raw data into a Uint8Array
-            const uint8Array = new Uint8Array(data);
-                    
-            // Create a Blob from the binary data
-            const blob = new Blob([uint8Array], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-            
-            const url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'School Data.xlsx';
-            a.click();
-            URL.revokeObjectURL(url);
-            busyFlag = false;
-          }).getXlsx();
-          break;
+          google.script.run
+            .withSuccessHandler(function(data) {
+              // Convert the raw data into a Uint8Array
+              const uint8Array = new Uint8Array(data);
+                      
+              // Create a Blob from the binary data
+              const blob = new Blob([uint8Array], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+              
+              const url = URL.createObjectURL(blob);
+              let a = document.createElement('a');
+              a.href = url;
+              a.download = fileName + '.xlsx';
+              a.click();
+              URL.revokeObjectURL(url);
+              busyFlag = false;
+              playNotificationSound("success");
+              showToast("", "Data exported successfully!", 5000);
+            })
+            .withFailureHandler((error) => {
+              const errorString = String(error);
+        
+              if (errorString.includes("401")) {
+                sessionError();
+              } else {
+                showError(error.message);
+              }
+              busyFlag = false;
+            })
+          .getXlsx();
+        break;
       }
       
-      closeHtmlModal("exportDataModal");
+      closeActionModal("exportDataModal");
     };
+  }
+
+  function showToggleFilterSidebar() {
+    showSidebar("Filter Search", "toggleFilterSidebar");
   }
 
   ///////////////////////
@@ -874,34 +929,76 @@
     }
   }
 
-  function resetModal() {
-    const modalSwitches = document.querySelectorAll('input:not(#filterLastName, #filterFirstName, #filterGrade, #filterClassroom, #filterTeacher, #filterEmergencyGroup)');
-    const modalSelects = document.querySelectorAll ('#exportRostersModal select, #exportLabelsModal select, #exportDataModal select');
+  function initializeSorting() {
+    const defaultColumnIndex = 0; // Default sort by "Last Name"
+    sortOrder[defaultColumnIndex] = true; // (A-Z) sort
 
-    // Reset select boxes
-    modalSelects.forEach(function(select) {
-      select.selectedIndex = 0; // Reset to the first option
-    });
+    // Add a short delay to ensure DOM is ready and table is fully rendered
+    setTimeout(() => {
+      const nameHeader = document.querySelector(`#schoolRoster thead th:nth-child(${defaultColumnIndex + 1})`);
+      const icon = nameHeader?.querySelector(".sort-icon");
+      updateSortIcons(defaultColumnIndex, sortOrder[defaultColumnIndex]);
+    }, 0);
+  }
 
-    // Reset the export rosters options
-    document.getElementById('classroomSelect').style.display = 'block';
-    document.getElementById('emergencyGroupSelect').style.display = 'none';
+  function sortTable(columnIndex) {
+    const tableBody = document.querySelector("#schoolRoster tbody");
+    const rows = Array.from(tableBody.querySelectorAll("tr"));
 
-    // Reset the label preview
-    document.getElementById('labelRow1').innerHTML = "<b>Student Name</b>";
-    document.getElementById('labelRow2').innerHTML = "";
+    // Store the original row order (based on first column)
+    const rowNumbers = rows.map(row => row.children[0].textContent.trim());
 
-    // Reset the scroll position of the modal body
-    const modalContent = document.querySelector('.modal-htmlcontent');
-    if (modalContent) {
-      modalContent.scrollTop = 0;
+    // If this is a new sort on this column OR we're switching to a different column,
+    // start with ascending (A-Z) sort
+    if (sortOrder[columnIndex] === undefined || !sortOrder.hasOwnProperty(columnIndex)) {
+        sortOrder[columnIndex] = true; // (A-Z) sort
+    } else {
+        sortOrder[columnIndex] = !sortOrder[columnIndex];
     }
 
-    // Reset switches
-    modalSwitches.forEach(function(input) {
-      input.checked = false;
+    const isAscending = sortOrder[columnIndex];
+
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.children[columnIndex].querySelector("input, select")?.value || rowA.children[columnIndex].textContent.trim();
+        const cellB = rowB.children[columnIndex].querySelector("input, select")?.value || rowB.children[columnIndex].textContent.trim();
+
+        if (!isNaN(cellA) && !isNaN(cellB)) {
+            return isAscending ? cellA - cellB : cellB - cellA;
+        }
+
+        return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
     });
+
+    // Reattach sorted rows
+    tableBody.innerHTML = "";
+    rows.forEach((row, index) => {
+        tableBody.appendChild(row);
+    });
+
+    // Reset all other column sort orders except the current one
+    Object.keys(sortOrder).forEach(key => {
+        if (parseInt(key) !== columnIndex) {
+            delete sortOrder[key];
+        }
+    });
+
+    updateSortIcons(columnIndex, isAscending);
   }
+
+  function updateSortIcons(sortedColumnIndex, isAscending) {
+    document.querySelectorAll("#schoolRoster thead th i.sort-icon").forEach(icon => {
+      icon.className = "bi sort-icon"; // Reset all icons
+    });
+
+    const sortedHeader = document.querySelector(`#schoolRoster thead th:nth-child(${sortedColumnIndex + 1}) i.sort-icon`);
+    
+    if (sortedHeader) {
+      const newClass = isAscending ? "bi-caret-up-fill" : "bi-caret-down-fill";
+      sortedHeader.classList.add(isAscending ? "bi-caret-up-fill" : "bi-caret-down-fill");
+    }
+  }
+
+  
 
   function showLabelFormat() {
     const labelFormat = document.getElementById('labelFormatSelect').value;
@@ -934,24 +1031,28 @@
     const rosterType = document.getElementById('rosterTypeSelect');
     const classroomSelect = document.getElementById('classroomSelect');
     const emergencySelect = document.getElementById('emergencyGroupSelect');
-    const rosterTypeValue = document.getElementById('rosterTypeSelect').value;
+    const rosterTypeValue = rosterType.value;
 
-    if (rosterTypeValue === 'classRoster') {
-      classroomSelect.style.display = 'block';
-      emergencySelect.style.display = 'none';
-      rosterType.style.marginBottom = '10px';
-    }
-    
-    else if (rosterTypeValue === 'emergencyGroupRoster') {
-      classroomSelect.style.display = 'none';
-      emergencySelect.style.display = 'block';
-      rosterType.style.marginBottom = '10px';
-    }
+    switch (rosterTypeValue) {
+      case 'classRoster':
+      case 'emergencyClassRoster':
+        classroomSelect.style.display = 'block';
+        emergencySelect.style.display = 'none';
+        rosterType.style.marginBottom = '10px';
+        break;
 
-    else if (rosterTypeValue === 'schoolRoster') {
-      classroomSelect.style.display = 'none';
-      emergencySelect.style.display = 'none';
-      rosterType.style.marginBottom = '0';
+      case 'emergencyGroupRoster':
+        classroomSelect.style.display = 'none';
+        emergencySelect.style.display = 'block';
+        rosterType.style.marginBottom = '10px';
+        break;
+
+      case 'emergencySchoolRoster':
+      case 'schoolRoster':
+        classroomSelect.style.display = 'none';
+        emergencySelect.style.display = 'none';
+        rosterType.style.marginBottom = '0';
+        break;
     }
   }
 
@@ -1012,7 +1113,7 @@
         break; 
     }
     playNotificationSound("alert");
-    showModal(title, message, button1, button2);
+    showAlertModal(title, message, button1, button2);
   }
 
   async function sessionError() {
@@ -1021,7 +1122,7 @@
     const message = "The current session has expired. Please sign in with Google and try again.";
     
     playNotificationSound("alert");
-    const buttonText = await showModal(title, message, "Cancel", "Sign in");
+    const buttonText = await showAlertModal(title, message, "Cancel", "Sign in");
        
     if (buttonText === "Sign in") {
       const signInUrl = "https://accounts.google.com";
