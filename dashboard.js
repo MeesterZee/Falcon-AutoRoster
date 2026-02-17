@@ -733,11 +733,11 @@
       case 'avery5160':
         for (let i = 0; i < data.length; i += 3) {
           let row = [
-            { text: data[i] ? data[i].text : '' },
-            { text: '', style: templateType },
-            { text: data[i + 1] ? data[i + 1].text : '' },
-            { text: '', style: templateType },
-            { text: data[i + 2] ? data[i + 2].text : '' }
+            { text: data[i] ? data[i].text : '', verticalAlignment: 'middle' },
+            { text: '', style: templateType, verticalAlignment: 'middle' },
+            { text: data[i + 1] ? data[i + 1].text : '', verticalAlignment: 'middle' },
+            { text: '', style: templateType, verticalAlignment: 'middle' },
+            { text: data[i + 2] ? data[i + 2].text : '', verticalAlignment: 'middle' }
           ];
           templateBody.push(row);
         }
@@ -746,13 +746,13 @@
       case 'avery8167':
         for (let i = 0; i < data.length; i += 4) {
           let row = [
-            { text: data[i] ? data[i].text : '' },
-            { text: '', style: templateType },
-            { text: data[i + 1] ? data[i + 1].text : '' },
-            { text: '', style: templateType },
-            { text: data[i + 2] ? data[i + 2].text : '' },
-            { text: '', style: templateType },
-            { text: data[i + 3] ? data[i + 3].text : '' }
+            { text: data[i] ? data[i].text : '', verticalAlignment: 'middle' },
+            { text: '', style: templateType, verticalAlignment: 'middle' },
+            { text: data[i + 1] ? data[i + 1].text : '', verticalAlignment: 'middle' },
+            { text: '', style: templateType, verticalAlignment: 'middle' },
+            { text: data[i + 2] ? data[i + 2].text : '', verticalAlignment: 'middle' },
+            { text: '', style: templateType, verticalAlignment: 'middle' },
+            { text: data[i + 3] ? data[i + 3].text : '', verticalAlignment: 'middle' }
           ];
           templateBody.push(row);
         }
@@ -761,9 +761,9 @@
       case 'avery95945':
         for (let i = 0; i < data.length; i += 2) {
           let row = [
-            { text: data[i] ? data[i].text : '' },
-            { text: '', style: templateType },
-            { text: data[i + 1] ? data[i + 1].text : '' },
+            { text: data[i] ? data[i].text : '', verticalAlignment: 'middle' },
+            { text: '', style: templateType, verticalAlignment: 'middle' },
+            { text: data[i + 1] ? data[i + 1].text : '', verticalAlignment: 'middle' }
           ];
           templateBody.push(row);
         }
