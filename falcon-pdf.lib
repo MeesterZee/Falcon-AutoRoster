@@ -1,4 +1,4 @@
-<!-- PDF Make v0.2.12 -->
+<!-- PDF Make v0.3.4 -->
 <!-- Sizing in points, 1 inch = 72 points -->
 
 <script>
@@ -183,15 +183,13 @@
     const topMargin = 0.5 * INCH_TO_POINTS;
     const bottomMargin = 0.5 * INCH_TO_POINTS;
     const columnGap = 20;
-    const maxRowsPerTable = 36; // Maximum rows per table including the header
+    const maxRowsPerTable = 36;
     const docContent = [];
 
     rosterData.forEach((roster, index) => {
-      if (index > 0) {
-        docContent.push({ text: '', pageBreak: 'after' });
-      }
+      // 1. REMOVE the separate pageBreak push block that was here
 
-      // Add title and emergency text
+      // 2. Add title and emergency text with the conditional pageBreak
       docContent.push(
         {
           table: {
@@ -203,12 +201,13 @@
               ]
             ]
           },
-          layout: TABLE_FORMAT
+          layout: TABLE_FORMAT,
+          // 3. Apply the break here instead
+          pageBreak: index > 0 ? 'before' : undefined
         },
         { text: roster.emergencyText, style: 'emergencyMessage' }
       );
 
-      // Create unique table headers for each table
       const createTableHeaders = () => [
         { text: 'Last Name', style: 'tableHeader' },
         { text: 'First Name', style: 'tableHeader' },
@@ -220,7 +219,7 @@
       let leftTableBody = [createTableHeaders()];
       let rightTableBody = [createTableHeaders()];
       let addToLeftColumn = true;
-      let currentRowIndex = 1; // Start from 1 because header is already included
+      let currentRowIndex = 1;
 
       roster.rosterText.forEach((row) => {
         if (addToLeftColumn) {
@@ -229,7 +228,7 @@
           
           if (currentRowIndex > maxRowsPerTable) {
             addToLeftColumn = false;
-            currentRowIndex = 2; // Reset row index for right column after header
+            currentRowIndex = 2; 
           }
         } else {
           rightTableBody.push(row);
@@ -250,7 +249,7 @@
         }
       ];
 
-      if (rightTableBody.length > 1) { // More than just the header
+      if (rightTableBody.length > 1) { 
         columns.push({
           width: '50%',
           table: {
@@ -258,8 +257,8 @@
             dontBreakRows: true,
             widths: [80, 80, 40, 40, 22],
             body: rightTableBody
-        },
-        layout: TABLE_FORMAT
+          },
+          layout: TABLE_FORMAT
         });
       }
 
@@ -284,13 +283,13 @@
     const topMargin = 0.25 * INCH_TO_POINTS;
     const bottomMargin = 0.25 * INCH_TO_POINTS;
     const columnGap = 13.5;
-    const maxRowsPerTable = 28; // Maximum rows per table including the header
+    const maxRowsPerTable = 28;
     const docContent = [];
 
-    const addPageContent = (leftTableBody, centerTableBody, rightTableBody, isFirstPage = false) => {
-      if (!isFirstPage) {
-        docContent.push({ text: '', pageBreak: 'after' });
-      }
+    // 1. Updated helper: Accepts boolean to decide if we break before this block
+    const addPageContent = (leftTableBody, centerTableBody, rightTableBody, isFirstPageOfDoc) => {
+      
+      // REMOVED: The manual { text: '', pageBreak: 'after' } push
 
       const columns = [];
 
@@ -350,7 +349,9 @@
               ]
             ]
           },
-          layout: TABLE_FORMAT
+          layout: TABLE_FORMAT,
+          // 2. Apply the page break here directly on the content
+          pageBreak: isFirstPageOfDoc ? undefined : 'before'
         },
         { text: currentRoster.emergencyText, style: 'emergencyMessage' },
         {
@@ -361,12 +362,11 @@
     };
 
     let currentRoster;
-    let isFirstPage = true;
+    let isFirstPage = true; 
 
     rosterData.forEach((roster, index) => {
       currentRoster = roster;
 
-      // Create table headers
       const createTableHeaders = () => [
         { text: 'Last Name', style: 'tableHeader' },
         { text: 'First Name', style: 'tableHeader' },
@@ -379,7 +379,7 @@
       let rightTableBody = [createTableHeaders()];
 
       let currentColumn = 'left';
-      let currentRowIndex = 1; // Start from 1 because header is already included
+      let currentRowIndex = 1; 
 
       roster.rosterText.forEach((row) => {
         if (currentColumn === 'left') {
@@ -393,27 +393,33 @@
         currentRowIndex++;
 
         if (currentRowIndex > maxRowsPerTable) {
-          currentRowIndex = 1; // Reset row index after header
+          currentRowIndex = 1; 
           if (currentColumn === 'left') {
             currentColumn = 'center';
           } else if (currentColumn === 'center') {
             currentColumn = 'right';
           } else if (currentColumn === 'right') {
+            // Page is full, write it out
             addPageContent(leftTableBody, centerTableBody, rightTableBody, isFirstPage);
 
-            // Reset the tables for the next set of rows
             leftTableBody = [createTableHeaders()];
             centerTableBody = [createTableHeaders()];
             rightTableBody = [createTableHeaders()];
 
             currentColumn = 'left';
-            isFirstPage = false;
+            isFirstPage = false; // Ensure subsequent pages/rosters break
           }
         }
       });
 
-      // Add remaining tables if they have more than just the headers
-      addPageContent(leftTableBody, centerTableBody, rightTableBody, isFirstPage);
+      // 3. CHECK: Only add the final page if there is actually data remaining
+      // This prevents a "Title Only" page if the data fit perfectly in the loop above.
+      const hasRemainingData = leftTableBody.length > 1 || centerTableBody.length > 1 || rightTableBody.length > 1;
+      
+      if (hasRemainingData) {
+        addPageContent(leftTableBody, centerTableBody, rightTableBody, isFirstPage);
+      }
+      
       isFirstPage = false;
     });
 
@@ -509,9 +515,11 @@
         {
           table: {
             widths: [...config.tableColumns],
-            heights: config.labelHeight,
+            //heights: config.labelHeight,
+            heights: new Array(labelData.length).fill(config.labelHeight),
             body: labelData,
             dontBreakRows: true,
+            keepWithHeaderRows: 0 // Added formatting protection
           },
           layout: tableFormat,
           style: templateType
