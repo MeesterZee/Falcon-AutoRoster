@@ -1486,6 +1486,20 @@
       document.getElementById('labelRow1').innerHTML = "<b>Student Name</b>";
       document.getElementById('labelRow2').innerHTML = "";
     }
+
+    // Reset export rosters (only needed for AutoRoster)
+    if (modalId == 'exportRostersModal') {
+        // Reset conditional sections to default visibility
+        const classroomSelect = actionModal.querySelector('#classroomSelect');
+        const emergencyGroupSelect = actionModal.querySelector('#emergencyGroupSelect');
+
+        if (classroomSelect) classroomSelect.style.display = 'block'; // default visible
+        if (emergencyGroupSelect) emergencyGroupSelect.style.display = 'none'; // default hidden
+
+        // Optionally reset the rosterTypeSelect to its first option
+        //const rosterTypeSelect = actionModal.querySelector('#rosterTypeSelect');
+        //if (rosterTypeSelect) rosterTypeSelect.selectedIndex = 0;
+    }
   }
 
   function showSidebar(title, contentId) {
