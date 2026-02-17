@@ -1,4 +1,4 @@
-/** Falcon AutoRoster - Web App v7.1.1 **/
+/** Falcon AutoRoster - Web App v7.2 **/
 /** Falcon EDU © 2023-2025 All Rights Reserved **/
 /** Created by: Nick Zagorin **/
 
@@ -67,7 +67,7 @@ function getNavbar(activePage) {
 
       function showAbout() {
         const title = "<i class='bi bi-info-circle'></i>About Falcon AutoRoster";
-        const message = "<b>Web App Version:</b> 7.1.1<br><b>Build:</b> 33.080825 <br><br>© 2023-2026 - All rights reserved";
+        const message = "<b>Web App Version:</b> 7.2<br><b>Build:</b> 36.021726 <br><br>© 2023-2026 - All rights reserved";
         showAlertModal(title, message, "Close");
       }
     </script>
